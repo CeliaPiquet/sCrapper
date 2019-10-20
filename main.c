@@ -3,6 +3,8 @@
 #include <curl/curl.h>
 #include <string.h>
 
+struct Link;
+
 int tagSize(char* tag);
 
 char* ReturnEndTag(char* tag, int tagSizeResult);
@@ -11,14 +13,16 @@ void getTag(char* tag,FILE *f);
 
 void getLinks(FILE *fp);
 
+struct Link {
+	char http[1000];
+};
+
 int main() {
     CURL *curl;
 
     FILE *fp = fopen("/home/ugo/Desktop/sCrapper/File/home.txt","r+");
     //FILE *fp = fopen("/home/perniceni/Bureau/sCrapper/File/home.txt","r+");
     int result;
-
-    char** UrlArray;
 
     if (fp == NULL){
         printf("Erreur d'ouverture de fichier\n");
@@ -199,10 +203,9 @@ void getLinks(FILE *fp){
 	    	c = fgetc(fp);
 	    }
 
-
-		for(int i = 0; i != 100; i++) // Affichage de la balise et de son contenu
+		for(int i = 0; i < 100; i++) // Affichage de la balise et de son contenu
 	    	{
-	    		printf("Lien n°%d : %s \n",i ,urlArray[i]);
+	    		printf("Lien n°%d : %s \n", i+1, urlArray[i]);
 	    	}
 
 	}
