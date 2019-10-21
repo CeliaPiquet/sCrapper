@@ -11,18 +11,23 @@ char* ReturnEndTag(char* tag, int tagSizeResult);
 
 void getTag(char* tag,FILE *f);
 
-void getLinks(FILE *fp);
+void getLinks(FILE *fp, char links[100][1000]);
 
 struct Link {
 	char http[1000];
 };
 
+void searchImage(char* link);
+
 int main() {
     CURL *curl;
 
-    FILE *fp = fopen("/home/ugo/Desktop/sCrapper/File/home.txt","r+");
-    //FILE *fp = fopen("/home/perniceni/Bureau/sCrapper/File/home.txt","r+");
+    //FILE *fp = fopen("/home/ugo/Desktop/sCrapper/File/home.txt","r+");
+    FILE *fp = fopen("/home/perniceni/Bureau/sCrapper/File/home.txt","r+");
+
     int result;
+
+    char links[100][1000];
 
     if (fp == NULL){
         printf("Erreur d'ouverture de fichier\n");
@@ -42,9 +47,16 @@ int main() {
     //     printf("ERROR: %s\n", curl_easy_strerror(result));
     // }
 
-    //getTag("<a>", fp);
+    getLinks(fp, links);
 
-    getLinks(fp);
+    for(int i = 0; i < 99; i++) // Affichage de la balise et de son contenu
+	{
+		printf("Lien n°%d : %s taille string : %lu\n", i+1, links[i], strlen(links[i]));
+		searchImage(links[i]);
+	}
+
+
+    //getTag("<a>", fp);
 
     //printf("%s", ReturnEndTag("<div>", 6));
 
@@ -147,15 +159,13 @@ void getTag(char* tag, FILE *fp){ // Balise à passer en paramètre, nombre de l
     	printf("Fichier NULL");
 } 
 
-void getLinks(FILE *fp){
+void getLinks(FILE *fp, char links[100][1000]){
 
 	char* http = malloc(sizeof(char)*5);
 	char* str = malloc(sizeof(char)*1000);
 	char c;
 	int occu = 0;
 	int urlNumber = 0;
-
-	char urlArray[100][1000];
 
 	http = "\"http";
 
@@ -186,15 +196,12 @@ void getLinks(FILE *fp){
 	    			occu++;
 	    		}
 
-	    		//printf("Lien : ");
 
 				for(int i = 0; i != occu; i++) // Affichage de la balise et de son contenu
 	    		{
-	    			//printf("%c", str[i]);
-	    			urlArray[urlNumber][i] = str[i];
+	    			links[urlNumber][i] = str[i];
 	    		}
 
-	    		//printf(" Url n°%d\n", urlNumber+1);
 
 	    		urlNumber++;
 
@@ -203,15 +210,17 @@ void getLinks(FILE *fp){
 	    	c = fgetc(fp);
 	    }
 
-		for(int i = 0; i < 100; i++) // Affichage de la balise et de son contenu
-	    	{
-	    		printf("Lien n°%d : %s \n", i+1, urlArray[i]);
-	    	}
-
 	}
-
 
 	//free(http);
 
 	//free(str);
+}
+
+void searchImage(char* link){
+
+	if (strstr(link, ".png") != NULL) {
+		printf(" ----- téléchargement -----\n");
+	}
+
 }
