@@ -11,13 +11,15 @@ char* ReturnEndTag(char* tag, int tagSizeResult);
 
 void getTag(char* tag,FILE *f);
 
-void getLinks(FILE *fp, char links[100][1000]);
+void getLinks(FILE *fp, char links[150][1000]);
 
 struct Link {
 	char http[1000];
 };
 
-void searchImage(char* link);
+void searchImage(char* link, int numDownload);
+
+void downloadImage(char* link, int numDownload);
 
 int main() {
     CURL *curl;
@@ -27,7 +29,7 @@ int main() {
 
     int result;
 
-    char links[100][1000];
+    char links[150][1000];
 
     if (fp == NULL){
         printf("Erreur d'ouverture de fichier\n");
@@ -49,12 +51,11 @@ int main() {
 
     getLinks(fp, links);
 
-    for(int i = 0; i < 99; i++) // Affichage de la balise et de son contenu
+    for(int i = 0; i < 100; i++) // Affichage de la balise et de son contenu
 	{
 		printf("Lien n°%d : %s taille string : %lu\n", i+1, links[i], strlen(links[i]));
-		searchImage(links[i]);
+		searchImage(links[i], i);
 	}
-
 
     //getTag("<a>", fp);
 
@@ -159,7 +160,7 @@ void getTag(char* tag, FILE *fp){ // Balise à passer en paramètre, nombre de l
     	printf("Fichier NULL");
 } 
 
-void getLinks(FILE *fp, char links[100][1000]){
+void getLinks(FILE *fp, char links[150][1000]){
 
 	char* http = malloc(sizeof(char)*5);
 	char* str = malloc(sizeof(char)*1000);
@@ -197,9 +198,9 @@ void getLinks(FILE *fp, char links[100][1000]){
 	    		}
 
 
-				for(int i = 0; i != occu; i++) // Affichage de la balise et de son contenu
+				for(int i = 0; i != occu - 2; i++) // Affichage de la balise et de son contenu
 	    		{
-	    			links[urlNumber][i] = str[i];
+	    			links[urlNumber][i] = str[i + 1];
 	    		}
 
 
@@ -217,10 +218,44 @@ void getLinks(FILE *fp, char links[100][1000]){
 	//free(str);
 }
 
-void searchImage(char* link){
+void searchImage(char* link, int numDownload){
 
 	if (strstr(link, ".png") != NULL) {
-		printf(" ----- téléchargement -----\n");
+		downloadImage(link, numDownload);
 	}
 
+}
+
+void downloadImage(char* link, int numDownload){
+
+	char* NomImage = malloc(sizeof(char) * 100);
+
+	sprintf(NomImage, "/home/perniceni/Bureau/sCrapper/File/Images/Image%d.png", numDownload);
+
+
+	FILE *fp = fopen(NomImage ,"wb");
+	
+	CURL *image;
+
+    if (fp == NULL){
+        printf("Erreur d'ouverture de fichier\n");
+    }
+
+	image = curl_easy_init();//Initialisation
+
+    curl_easy_setopt(image, CURLOPT_URL, link);//Recuperation des informations au niv de l'URL
+    curl_easy_setopt(image, CURLOPT_WRITEDATA, fp);//Ecriture dans le fichier
+    curl_easy_setopt(image, CURLOPT_FAILONERROR, 1L);//Gestion erreurs
+
+    int result = curl_easy_perform(image);//Resultat telechargement
+
+    if(result == CURLE_OK){
+        printf("Téléchargement terminé !\n");
+    } else {
+        printf("ERROR: %s, link:-%s-\n", curl_easy_strerror(result), link);
+    }
+
+    fclose(fp);
+
+    curl_easy_cleanup(image);//Vide les ressources de curl
 }
