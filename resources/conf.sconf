@@ -1,0 +1,29 @@
+=
+{name -> Mon site web}                                                                  # Nom de notre action
+{url -> https://stackoverflow.com/questions/5793760/including-libcurl-in-c-project}   # URL du site à récupérer
++
+{max-depth -> 2}
+{versioning -> 1}                                                                       # 1 ou 0 = on ou off
+{type -> (text/html,image/jpeg,application/xml)}
+
+=
+    {name -> Mon site web2}                                                                  # Nom de notre action
+{url -> https://stackoverflow.com}                                                       # URL du site à récupérer
++
+{max-depth -> 0}
+{versioning -> 0}                                                                       # 1 ou 0 = on ou off
+{type -> (text/html)}
+
+==
+{name -> Ma super tâche}
+{minute -> 2}
+{second -> 5}
+(Mon site web2,Mon site web)
+
+==
+{name -> Ma deuxième super tâche}
+{hour -> 1}
+{second -> 5}
+(Mon site web)
+
+
