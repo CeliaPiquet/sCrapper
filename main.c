@@ -3,58 +3,35 @@
 #include <curl/curl.h>
 #include <string.h>
 
-struct Link;
-
-int tagSize(char* tag);
-
-char* ReturnEndTag(char* tag, int tagSizeResult);
-
-void getTag(char* tag,FILE *f);
+FILE* getPage(char* savePath, char* url);
 
 void getLinks(FILE *fp, char links[150][1000]);
 
-struct Link {
-	char http[1000];
-};
+void downloadType(char* link, int numDownload);
 
-void searchImage(char* link, int numDownload);
-
-void downloadImage(char* link, int numDownload);
+void downloadImage(char* link, int numDownload, char* typeImage);
 
 int main() {
-    CURL *curl;
-
-    //FILE *fp = fopen("/home/ugo/Desktop/sCrapper/File/home.txt","r+");
-    FILE *fp = fopen("/home/perniceni/Bureau/sCrapper/File/home.txt","r+");
-
-    int result;
 
     char links[150][1000];
 
-    if (fp == NULL){
-        printf("Erreur d'ouverture de fichier\n");
-        return 1;
-    }
+    //FILE* fp = getPage("/home/perniceni/Bureau/sCrapper/File/home.txt", "https://github.com/");
+    
+        ////FILE *fp = fopen("/home/ugo/Desktop/sCrapper/File/home.txt","r+");
+    FILE *fp = fopen("/home/perniceni/Bureau/sCrapper/File/home.txt","r+");
 
-    // curl = curl_easy_init();//Initialisation
-    // curl_easy_setopt(curl, CURLOPT_URL, "https://github.com/");//Recuperation des informations au niv de l'URL
-    // curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);//Ecriture dans le fichier
-    // curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);//Gestion erreurs
+    if(fp == NULL)
+    	return 0;
 
-    // result = curl_easy_perform(curl);//Resultat telechargement
+    ////FILE *fp = fopen("/home/ugo/Desktop/sCrapper/File/home.txt","r+");
+    //FILE *fp = fopen("/home/perniceni/Bureau/sCrapper/File/home.txt","r+");
 
-    // if(result == CURLE_OK){
-    //     printf("Téléchargement terminé !\n");
-    // } else {
-    //     printf("ERROR: %s\n", curl_easy_strerror(result));
-    // }
-
-    getLinks(fp, links);
+ 	getLinks(fp, links);
 
     for(int i = 0; i < 100; i++) // Affichage de la balise et de son contenu
 	{
-		printf("Lien n°%d : %s taille string : %lu\n", i+1, links[i], strlen(links[i]));
-		searchImage(links[i], i);
+		printf("Lien n°%d : %s | taille string : %lu\n", i+1, links[i], strlen(links[i]));
+		//downloadType(links[i], i);
 	}
 
     //getTag("<a>", fp);
@@ -63,102 +40,10 @@ int main() {
 
     //printf("%d", tagSize("<script>"));
 
-    fclose(fp);
-
-    curl_easy_cleanup(curl);//Vide les ressources de curl
+	//fclose(fp);
 
     return 0;
 }
-
-char* ReturnEndTag(char* tag, int tagSizeResult){
-	char* result = malloc(sizeof(char)*(tagSizeResult+3));
-
-	result[0] = '<';
-	result[1] = '/';
-
-	for(int i = 1; i <= tagSizeResult; i++) // Affichage de la balise et de son contenu
-	{
-	    result[i+1] = tag[i];
-	}
-
-	result[tagSizeResult + 2] = '>';
-	result[tagSizeResult + 3] = '\0';
-
-	return result;
-}
-
-int tagSize(char* tag){
-	int u = 0;
-
-	if(tag[0] == '<')
-	{
-		while(tag[u+1] != '>')
-			u++;
-
-		return u;
-	}
-
-	return 0;
-}
-
-void getTag(char* tag, FILE *fp){ // Balise à passer en paramètre, nombre de lettre de la balise ( sans les <> ), Fichier ouvert
-
-	char* str = malloc(sizeof(char)*2000);
-	//char str[200];
-	//char* chaine = malloc(sizeof(char)*200);
-	char c;
-	int tagSizeResult = tagSize(tag);
-	int occu = 0;
-
-    printf("->getTag param: %s\n", tag);
-
-	if (fp != NULL) // On verifie que le fichier existe et est ouvert...
-    {
-
-	    c = fgetc(fp); 
-
-	    while (c != EOF) // tant qu'on est pas à la fin du document...
-	    { 
-
-	    	if(tag[occu] == c) // 1ère occurence de la balise
-	    	{
-	    		str[occu] = c;
-
-	    		occu++;
-
-	    	}
-	    	else
-	    	{
-	    		occu = 0;
-	    	}
-
-
-	    	if (occu == tagSizeResult + 1) // Si la balise est complète alors on recupere tout son contenue. +1 pour le <
-	    	{
-	    		while(c != '>') // Tant que la balise n'est pas fermée tout est récupéré -!- A VOIR SI '>' EST EN TEXTE -!-
-	    		{
-	    			c = fgetc(fp);
-	    			str[occu] = c;
-	    			occu++;
-	    		}
-
-				for(int i = 0; i != occu; i++) // Affichage de la balise et de son contenu
-	    		{
-	    			printf("%c", str[i]);
-	    		}
-
-	    		printf("%s\n", ReturnEndTag(tag, tagSizeResult)); // Balise fermante
-
-	    	}
-
-	        c = fgetc(fp); 
-
-	    } 
-
-    }
-    else
-    	printf("Fichier NULL");
-} 
 
 void getLinks(FILE *fp, char links[150][1000]){
 
@@ -197,7 +82,6 @@ void getLinks(FILE *fp, char links[150][1000]){
 	    			occu++;
 	    		}
 
-
 				for(int i = 0; i != occu - 2; i++) // Affichage de la balise et de son contenu
 	    		{
 	    			links[urlNumber][i] = str[i + 1];
@@ -218,23 +102,30 @@ void getLinks(FILE *fp, char links[150][1000]){
 	//free(str);
 }
 
-void searchImage(char* link, int numDownload){
+void downloadType(char* link, int numDownload){
 
-	if (strstr(link, ".png") != NULL) {
-		downloadImage(link, numDownload);
+	if (strstr(link, ".png")!= NULL) {
+		downloadImage(link, numDownload, "png");
+	}
+	else if(strstr(link, ".jpg")!= NULL){
+		downloadImage(link, numDownload, "jpg");
+	}
+	else if(strstr(link, ".svg")!= NULL){
+		downloadImage(link, numDownload, "svg");
 	}
 
 }
 
-void downloadImage(char* link, int numDownload){
+void downloadImage(char* link, int numDownload, char* typeImage){
 
 	char* NomImage = malloc(sizeof(char) * 100);
 
-	sprintf(NomImage, "/home/perniceni/Bureau/sCrapper/File/Images/Image%d.png", numDownload);
+	sprintf(NomImage, "/home/perniceni/Bureau/sCrapper/File/Images/Image%d.", numDownload);
 
+	NomImage = strcat(NomImage, typeImage);
 
 	FILE *fp = fopen(NomImage ,"wb");
-	
+
 	CURL *image;
 
     if (fp == NULL){
@@ -258,4 +149,35 @@ void downloadImage(char* link, int numDownload){
     fclose(fp);
 
     curl_easy_cleanup(image);//Vide les ressources de curl
+}
+
+FILE* getPage(char* savePath, char* url){
+
+    CURL* curl;
+
+    FILE* fp = fopen(savePath,"r+");
+
+    int result;
+
+    if (fp == NULL){
+        printf("Erreur d'ouverture de fichier\n");
+    }
+
+    curl = curl_easy_init();//Initialisation
+    curl_easy_setopt(curl, CURLOPT_URL, url);//Recuperation des informations au niv de l'URL
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);//Ecriture dans le fichier
+    curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);//Gestion erreurs
+
+    result = curl_easy_perform(curl);//Resultat telechargement
+
+    if(result == CURLE_OK){
+        printf("Téléchargement terminé !\n");
+    } else {
+        printf("ERROR: %s\n", curl_easy_strerror(result));
+    }
+
+    return fp;
+
+    curl_easy_cleanup(curl);//Vide les ressources de curl
+
 }
