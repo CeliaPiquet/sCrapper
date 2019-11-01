@@ -1,4 +1,0 @@
--> sauv .c
--> Terminale, cd sur le repertoire
--> gcc .c -lcurl -o NomExe
--> ./NomExe
