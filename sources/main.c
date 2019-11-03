@@ -2,24 +2,25 @@
 
 /*
 	TO DO : 
-	- Récupération du code source et lecture des urls dans le même main
-	- algo recherche des URLS, gestion des URLS avec JS ? ex:   ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+	- algo recherche des URLS, gestion des URLS avec JS ? ex:ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
 
 	- allocation dynamique des données
 	- libération de la mémoire
+
+	- profondeur
 */
 
 int main() {
 
 	struct ListLinks* ListLinks = newEmptyListOfLinks();
 
+	getPage("/home/ugo/Bureau/sCrapper/File/home.txt", "https://github.com/");
 
 	FILE *fp = fopen("/home/ugo/Bureau/sCrapper/File/home.txt","r");
 
-    if(fp == NULL)
-    {
-    	printf("Erreur lors de l'ouverture du fichier.");
+    if(fp == NULL){
 
+    	printf("Erreur lors de l'ouverture du fichier.");
     	return 0;
     }
 
@@ -170,8 +171,8 @@ void downloadDoc(char* link, int numDownload, char* extension, char* file){
 
     curl_easy_cleanup(image);//Vide les ressources de curl
 }
-
-FILE* getPage(char* savePath, char* url){
+*/
+void getPage(char* savePath, char* url){
 
     CURL* curl;
 
@@ -196,7 +197,7 @@ FILE* getPage(char* savePath, char* url){
         printf("ERROR: %s\n", curl_easy_strerror(result));
     }
 
-    return fp;
-
     curl_easy_cleanup(curl);//Vide les ressources de curl
-} */
+
+    fclose(fp);
+} 

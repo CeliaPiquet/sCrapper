@@ -29,7 +29,7 @@ void ListOfLinksAdd(struct ListLinks* ListOfLinks, char* href, int depth);
 
 void getLinks(FILE *fp, struct ListLinks* ListLinks);
 
-// FILE* getPage(char* savePath, char* url);
+void getPage(char* savePath, char* url);
 
 // char* isImage(char* link);
 

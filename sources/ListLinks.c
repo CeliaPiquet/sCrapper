@@ -2,7 +2,7 @@
 
 struct ListLinks* newEmptyListOfLinks(){
 
-	int initialCapacity = 150;
+	int initialCapacity = 300;
 	int initialCapacityLink = 1000;
 
 	struct ListLinks* ListOfLinks = malloc(sizeof(ListOfLinks));
