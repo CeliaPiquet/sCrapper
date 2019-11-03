@@ -23,6 +23,8 @@ struct Link* newEmptyLink();
 
 struct Link ListOfLinksGetLink(struct ListLinks* ListOfLinks, int index);
 
+void ListOfLinksToStringDebug(struct ListLinks* ListOfLinks);
+
 void ListOfLinksAdd(struct ListLinks* ListOfLinks, char* href, int depth);
 
 void getLinks(FILE *fp, struct ListLinks* ListLinks);

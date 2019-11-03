@@ -2,9 +2,8 @@
 
 /*
 	TO DO : 
-	
-	- Régler le pb des urls dans la structure
 	- Récupération du code source et lecture des urls dans le même main
+	- algo recherche des URLS, gestion des URLS avec JS ? ex:   ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
 
 	- allocation dynamique des données
 	- libération de la mémoire
@@ -13,6 +12,7 @@
 int main() {
 
 	struct ListLinks* ListLinks = newEmptyListOfLinks();
+
 
 	FILE *fp = fopen("/home/ugo/Bureau/sCrapper/File/home.txt","r");
 
@@ -25,10 +25,7 @@ int main() {
 
 	getLinks(fp, ListLinks);
 
-    for(int i = 0; i < 150; i++) // Affichage de la balise et de son contenu ( Les urls s'enregistrent mal dans la structure )
-	{
-		printf("Lien n°%d : %s | depth : %d | Taille : %lu \n", i+1, ListLinks->links[i].href, ListLinks->links[i].depth , ListLinks->links[i].stringSize);
-	}
+	ListOfLinksToStringDebug(ListLinks);
 
 	fclose(fp);
 
@@ -37,15 +34,14 @@ int main() {
 
 void getLinks(FILE *fp, struct ListLinks* ListLinks){
 
-	char* http = malloc(sizeof(char)*5);
+	char* http = malloc(sizeof(char)*4);
 	char* str = malloc(sizeof(char)*1000);
 	char* tmpCleanUrl = malloc(sizeof(char) * 1000);
 
 	char c;
 	int occu = 0;
-	int u = 0;
 
-	http = "\"http";
+	http = "http";
 
     printf("->getLinks\n");
 
@@ -55,39 +51,47 @@ void getLinks(FILE *fp, struct ListLinks* ListLinks){
 
 	    while (c != EOF) // tant qu'on est pas à la fin du document...
 	    {
-	    	if(c == http[occu])
+	    	if(c == 34 || c == 39)
 	    	{
-	    		str[occu] = http[occu];
-	    		occu++;
-	    	}
-	    	else{
-	    		occu = 0;
-	    	}
+				c = fgetc(fp);
 
-	    	if(occu == 4)
-	    	{
-	    		while(c != 34)
-	    		{
-	    			c = fgetc(fp);
-					str[occu] = c;
-	    			occu++;
-	    		}
+				while(c == http[occu]){
+					str[occu] = http[occu];
 
-				for(int i = 0; i != occu - 2; i++) // Affichage de la balise et de son contenu
-	    		{
-	    			tmpCleanUrl[i] = str[i + 1];
-	    		}
+					c = fgetc(fp);
+					occu++;
+				}
 
-	    		tmpCleanUrl[occu-2] = '\0';
+				if(occu == 4){
 
-	    		printf("tmpCleanUrl: %s\n", tmpCleanUrl);
+		    		while(c != 34 && c != 39){
 
-	    		ListOfLinksAdd(ListLinks, tmpCleanUrl, 0);
+		    			c = fgetc(fp);
+						str[occu] = c;
+		    			occu++;
+		    		}
 
-	    		u++;
+		    		str[occu] = '\0';
+
+		    		for(int i = 0; i != occu; i++){ // Affichage de la balise et de son contenu
+		    			tmpCleanUrl[i] = str[i];
+		    		}
+
+		    		tmpCleanUrl[occu - 1] = '\0';
+
+		    		//printf("tmpCleanUrl: %s\n", tmpCleanUrl);
+
+		    		ListOfLinksAdd(ListLinks, tmpCleanUrl, 0);
+
+				}
+
+				else{
+					occu = 0;
+				}
 	    	}
 
 	    	c = fgetc(fp);
+
 	    }
 
 	}

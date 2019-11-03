@@ -22,7 +22,9 @@ struct ListLinks* newEmptyListOfLinks(){
 
 void ListOfLinksAdd(struct ListLinks* ListOfLinks, char* href, int depth){
 
-	ListOfLinks->links[ListOfLinks->size].href = href;
+	strcpy(ListOfLinks->links[ListOfLinks->size].href, href);
+
+	//ListOfLinks->links[ListOfLinks->size].href = href;
 	ListOfLinks->links[ListOfLinks->size].depth = depth;
 	ListOfLinks->links[ListOfLinks->size].stringSize = strlen(href);
 
@@ -31,4 +33,13 @@ void ListOfLinksAdd(struct ListLinks* ListOfLinks, char* href, int depth){
 
 struct Link ListOfLinksGetLink(struct ListLinks* ListOfLinks, int index){
 	return ListOfLinks->links[index];
+}
+
+void ListOfLinksToStringDebug(struct ListLinks* ListOfLinks){
+
+	for(int i = 0; i < ListOfLinks->size; i++)
+	{
+		printf("Lien n°%d : %s | depth : %d | Taille : %lu \n", i+1, ListOfLinks->links[i].href, ListOfLinks->links[i].depth , ListOfLinks->links[i].stringSize);
+	}
+
 }
