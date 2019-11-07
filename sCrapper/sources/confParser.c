@@ -6,7 +6,7 @@
 //  Copyright © 2019 CELIA PIQUET. All rights reserved.
 //
 
-#include "../Headers/scrapper.h"
+#include "../headers/scrapper.h"
 
 // TODO :   vérifier les valeurs numériques entrées dans la conf avec signalement à l'utilisateur que le fichier n'est pas bon
 //          paramétrer les Tasks
@@ -16,14 +16,26 @@
 //          gérer les espaces de fin de lignes
 
 
-int readConf(char* confPath){
+void cleanConf(ListTask *tasks, ListAction *actions){
+    int i;
+    for (i = 0; i < tasks->nbTask; i++){
+        cleanTask(&tasks->tasks[i]);
+    }
+    for (i = 0; i < actions->nbAction; i++){
+        cleanAction(&actions->actions[i]);
+    }
+    free(tasks->tasks);
+    free(actions->actions);
+    tasks->tasks = NULL;
+    actions->actions = NULL;
+}
+
+int readConf(char* confPath, ListTask *tasks, ListAction *actionsList){
     FILE* fp = fopen(confPath, "r");
-    int nbAction = 0, nbCharRead = 0, nbTask = 0;
+    int nbCharRead = 0;
     char * actualLine = malloc(sizeof(char)*250);
-    Action *listActions = malloc(sizeof(Action)*10);
-    Task *listTasks = malloc(sizeof(Task)*5);           // On se limite à 5 tâches
     
-    if (fp != NULL && actualLine != NULL && listActions != NULL && listTasks != NULL){
+    if (fp != NULL && actualLine != NULL){
         while (getOneLine(actualLine, fp)){
             nbCharRead = nbCharRead + (int)strlen(actualLine);
             removeCommentFromLine(actualLine);
@@ -32,36 +44,34 @@ int readConf(char* confPath){
                 Action newAction;
                 initAction(&newAction);
                 if (!completeAction(&newAction, fp, &nbCharRead)){      // Le ficher de conf n'est pas valide pour la créationd de l'action
-                    printf("Fichier de configuration erroné.\n");
+                    fprintf(stderr,"Fichier de configuration erroné.\n");
                     return 0;
                 }
-                listActions[nbAction] = newAction;
-                nbAction ++;
+                actionsList->actions[actionsList->nbAction] = newAction;
+                actionsList->nbAction ++;
+                
                 fseek(fp, nbCharRead, SEEK_SET);                        // On veut retourner à la ligne précédente donc on part du début du fichier et on se positionne au nombre de caractère déjà lu
             }
             
             else if (strcmp(actualLine,"==") == 0){                     // Création d'une tâche
                 Task newTask;
                 initTask(&newTask);
-                if (!completeTask(&newTask, fp, &nbCharRead, listActions, nbAction)){
-                    printf("Fichier de configuration erroné.\n");
+                if (!completeTask(&newTask, fp, &nbCharRead, actionsList)){
+                    fprintf(stderr,"Fichier de configuration erroné.\n");
                     return 0;
                 }
-                displayTask(&newTask);
-                listTasks[nbTask] = newTask;
-                nbTask ++;
+                tasks->tasks[tasks->nbTask] = newTask;
+                tasks->nbTask ++;
                 fseek(fp, nbCharRead, SEEK_SET);
             }
             
         }
         fclose(fp);
     } else {
-        printf("Erreur lors de l'initialisation.");
+        fprintf(stderr,"Erreur lors de l'initialisation.");
         return 0;
     }
     free(actualLine);
-    free(listTasks);
-    free(listActions);
     return 1;
 }
 
@@ -77,12 +87,10 @@ void removeCommentFromLine(char *line){
         return;
     }
 
-    printf("COMMENT in : %s\n", line);
     // S'il existe un commentaire dans la ligne on copie la ligne sans le commentaire
     // dans la variable temporaire
     tmpLine = malloc(sizeof(char)*startComment);
     strncpy(tmpLine, line, startComment);
-    printf("WITHOUT : %s\n", tmpLine);
     strncpy(line, tmpLine, startComment);
     tmpLine[startComment-1] = '\0';
 }
@@ -102,10 +110,11 @@ int getOneLine(char *line, FILE *fp){
 }
 
 void cleanLine(char *line){
-    printf("%d : %s\n", strlen(line), line);
     int indexStartKeeping = 0, indexEndKipping = (int)strlen(line), index = 0;
-    char *tmpLine = malloc(sizeof(char)*strlen(line));
-    
+    char *tmpLine = malloc(sizeof(char)*(int)strlen(line));
+    if (tmpLine == NULL){
+        return;
+    }
     while (index < strlen(line)){
         if (line[index] == '{'){
             indexStartKeeping = index;
@@ -117,10 +126,9 @@ void cleanLine(char *line){
     }
     
     if (indexEndKipping != (int)strlen(line)){
-        strncpy(tmpLine, line+indexStartKeeping, indexEndKipping-indexStartKeeping);
+        strncpy(tmpLine, line+indexStartKeeping, indexEndKipping-indexStartKeeping+1);
         strcpy(line, tmpLine);
         line[strlen(tmpLine)] = '\0';
-        printf("%d : %s\n", strlen(tmpLine), line);
 
     }
     free(tmpLine);
@@ -133,7 +141,7 @@ void getAttributName(char *actualLine, char *actualAttributName, int *index){ //
     if (actualLine[copyIndex] == '{'){
         copyIndex ++;
     } else {
-        printf("ERREUR\n");
+        fprintf(stderr,"ERREUR\n");
         return;
     }
     if (actualAttributName[copyIndex] == ' '){

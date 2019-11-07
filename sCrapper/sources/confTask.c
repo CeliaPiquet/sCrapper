@@ -6,9 +6,16 @@
 //  Copyright © 2019 CELIA PIQUET. All rights reserved.
 //
 
-#include "../Headers/scrapper.h"
+#include "../headers/scrapper.h"
 
-int completeTask(Task *task, FILE *fp, int *nbChar, Action *listActions, int nbAction){
+void cleanTask(Task *task){
+    free(task->name);
+    task->name = NULL;
+    free(task->actionsList.actions);
+    task->actionsList.actions = NULL;
+}
+
+int completeTask(Task *task, FILE *fp, int *nbChar, ListAction *actionsList){
     int index = 0;
     char *actualLine = malloc(sizeof(char)*2500);
     char *actualAttributName = malloc(sizeof(char)*20);
@@ -16,14 +23,13 @@ int completeTask(Task *task, FILE *fp, int *nbChar, Action *listActions, int nbA
     int actualAttributValueInt;
     
     while (getOneLine(actualLine, fp) && actualLine[0] != '='){
-        
         *nbChar = *nbChar + (int)strlen(actualLine);
         if (actualLine[0] == '#' || actualLine[0] == '+' || strlen(actualLine) == 0){
             continue; // On ignore
         }
         if (actualLine[0] == '('){
             // Liste des actions
-            if (!setActionListToTask(task, listActions, nbAction, actualLine)){
+            if (!setActionListToTask(task, actionsList, actualLine)){
                 return 0;
             }
             
@@ -31,7 +37,7 @@ int completeTask(Task *task, FILE *fp, int *nbChar, Action *listActions, int nbA
             // On récupère l'attribut de la ligne et on le vérifie
             getAttributName(actualLine, actualAttributName, &index);
             if (!isCorrectAttributName(actualAttributName)){
-                printf("Attribut '%s' incorrect\n", actualAttributName);
+                fprintf(stderr, "Attribut '%s' incorrect\n", actualAttributName);
                 return 0;
             }
             
@@ -56,39 +62,54 @@ int completeTask(Task *task, FILE *fp, int *nbChar, Action *listActions, int nbA
 
 
 void initTask(Task *task){
+    ListAction actionList;
+    actionList.sizeMax = 5; //On se limite à 5 actions par tâche
+    actionList.actions = malloc(sizeof(Action)*actionList.sizeMax);
+    actionList.nbAction = 0;
+ 
+    task->name = malloc(sizeof(char)*20);
     task->hour = 0;
     task->minute = 0;
     task->second = 0;
-    task->name = malloc(sizeof(char)*20);
-    task->sizeListAction = 0;
-    task->listActions = malloc(sizeof(char)*10);
+    task->actionsList = actionList;
 }
 
-int setActionListToTask(Task *task, Action *listActions, int nbAction, char *actualLine){
+int setActionListToTask(Task *task, ListAction *actionList, char *actualLine){
     char *actionName = malloc(sizeof(char)*20);
-    if (!getActionName(actualLine, actionName)){
-        printf("Il faut renseigner au moins une action pour la création de tâche.\n");
-        return 0;
-    }
-    if (task->sizeListAction >= 10){
-        printf("La tâche a déjà 10 actions, créez une autre tâche pour les autres.\n");
-        return 0;
+    char *lineTmp = malloc(sizeof(char)*strlen(actualLine));
+    int sizeActionName = 0;
+    int nbOfActionInTask = task->actionsList.nbAction;
+    strcpy(lineTmp, actualLine+sizeActionName);
+    
+    while (getActionName(lineTmp, actionName)){
+        if ( nbOfActionInTask >= task->actionsList.sizeMax){
+            fprintf(stderr, "La tâche a déjà son nombre d'actions maximum autorisé (5).\nCréez une autre tâche pour les autres actions.\n");
+            return 0;
+        }
+        if (!getActionFromList(actionList, actionName,&task->actionsList.actions[nbOfActionInTask])){
+            fprintf(stderr, "Aucune action nommée '%s' n'a été trouvée.\n", actionName);
+            return 0;
+        }
+        task->actionsList.nbAction ++;
+        nbOfActionInTask ++;
+        sizeActionName = sizeActionName + (int)strlen(actionName) + 1;
+        strcpy(lineTmp, actualLine+sizeActionName);
     }
     
-    if (!getActionFromList(listActions, actionName, nbAction, &task->listActions[task->sizeListAction])){
-        printf("Aucune action nommée '%s' n'a été trouvée.\n", actionName);
+    if (task->actionsList.nbAction == 0){
+        fprintf(stderr, "Il faut renseigner au moins une action pour la création de tâche.\n");
         return 0;
     }
-    task->sizeListAction ++;
     
     return 1;
 }
 
-int getActionFromList(Action *listActions, char *actionName, int nbAction, Action* actionToUpdate){
+int getActionFromList(ListAction *actionList, char *actionName, Action* actionToUpdate){
     int i;
+    int nbAction = actionList->nbAction;
     for (i = 0; i < nbAction; i++){
-        if (strcmp(listActions[i].name, actionName) == 0){
-            *actionToUpdate = listActions[i];
+        if (strcmp(actionList->actions[i].name, actionName) == 0){
+            *actionToUpdate = actionList->actions[i];
             return 1;
         }
     }
@@ -96,26 +117,13 @@ int getActionFromList(Action *listActions, char *actionName, int nbAction, Actio
 }
 
 void displayTask(Task *task){
-    int i, j;
-    printf("TASK : {\n");
-    printf("    Name : %s\n", task->name);
-    printf("    Minute : %d\n", task->minute);
-    printf("    Second : %d\n", task->second);
-    printf("    Hour : %d\n", task->hour);
-    printf("    Action(s) :\n");
-    for (i = 0; i < task->sizeListAction; i++){
-        printf("        {\n");
-        printf("            Name : %s\n", task->listActions[i].name);
-        printf("            Url : %s\n", task->listActions[i].url);
-        printf("            Max-depth : %d\n", task->listActions[i].maxDepth);
-        printf("            Versioning : %d\n", task->listActions[i].versionning);
-        printf("            Type :\n");
-        for (j = 0; j < task->listActions[i].sizeTypeList; j++){
-            printf("                %s\n", task->listActions[i].listType[j]);
-        }
-        printf("        },\n");
-    }
-    printf("}\n");
+    fprintf(stderr, "TASK : {\n");
+    fprintf(stderr, "    Name : %s\n", task->name);
+    fprintf(stderr, "    Minute : %d\n", task->minute);
+    fprintf(stderr, "    Second : %d\n", task->second);
+    fprintf(stderr, "    Hour : %d\n", task->hour);
+    displayActionList(&task->actionsList);
+    fprintf(stderr, "}\n");
 }
 int getActionName(char *line, char *actionName){
     int index = 1; // On commence juste après la parenthèse
@@ -125,7 +133,6 @@ int getActionName(char *line, char *actionName){
     }
     actionName[index-1] = '\0';
     if (index == strlen(line)){
-        printf("\nMauvais formatage de la liste d'action\n");
         return 0;
     }
     return 1;
