@@ -9,6 +9,14 @@
 #ifndef types_h
 #define types_h
 #include <pthread.h>
+
+    typedef struct ListLinks ListLinks;
+    struct ListLinks{
+        char** listUrls;
+        int capacity;
+        int size;
+    };
+
     typedef struct Action Action;
     struct Action {
         char* name;
@@ -18,6 +26,7 @@
         int sizeTypeList;   // Le nombre de type maximum pour une action
         int nbType;         // Le nombre réel de type pour l'action en cours
         char** typeList;
+        ListLinks *urlsWithDepth; // La liste de toutes les urls à parser pour cette action, dépend de maxDepth
     };
 
     typedef struct ListAction ListAction;
@@ -49,5 +58,7 @@
         int sizeMax;
         int nbThreads;
     };
+
+   
 
 #endif /* types_h */

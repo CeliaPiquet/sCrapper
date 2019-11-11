@@ -8,10 +8,10 @@
 #include "../headers/scrapper.h"
 
 int main(int argc, const char * argv[]) {
-    
+
     int exitCode;
 
-    // On initialise la liste des tâches qui nous sevrira pour la suite
+    // On initialise la liste des tâches et actions qui nous serviront pour la suite
     ListTask tasks;
     tasks.sizeMax = 5; //On se limite initiallement à 5 tâches
     tasks.tasks = malloc(sizeof(Task)*tasks.sizeMax);
@@ -22,6 +22,7 @@ int main(int argc, const char * argv[]) {
     actionList.actions = malloc(sizeof(Action)*actionList.sizeMax);
     actionList.nbAction = 0;
 
+    // On récupère les tâches et actions de la conf
     readConf("/Users/cpiquet/dev/projets_esgi/sCrapper/sCrapper/resources/conf.sconf", &tasks, &actionList);
 
     // display for check
@@ -30,9 +31,18 @@ int main(int argc, const char * argv[]) {
         displayTask(&tasks.tasks[i]);
     }
 
-    exitCode = startScrapping(tasks);
+
+    // !! A MODIFIER AVEC LES NOUVELLES LISTE D'URLS PAR ACTION
+    //On scrappe le tout
+    //exitCode = startScrapping(tasks);
+
+    // Check if some errors occure
     printf("Exit code : %d\n", exitCode);
 
+    // On clean tout
     //cleanConf(&tasks, &actionList);
+    
+    
+    
     return 0;
 }

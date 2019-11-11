@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		46B214A72378A67600DCC314 /* urlParser.c in Sources */ = {isa = PBXBuildFile; fileRef = 46B214A62378A67600DCC314 /* urlParser.c */; };
 		46C5D0CC23605DB80016BE7F /* confParser.c in Sources */ = {isa = PBXBuildFile; fileRef = 46C5D0C823605DB70016BE7F /* confParser.c */; };
 		46C5D0CD23605DB80016BE7F /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 46C5D0C923605DB70016BE7F /* main.c */; };
 		46C5D0CE23605DB80016BE7F /* confAction.c in Sources */ = {isa = PBXBuildFile; fileRef = 46C5D0CA23605DB70016BE7F /* confAction.c */; };
@@ -30,6 +31,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		46B214A52378A67600DCC314 /* urlParser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = urlParser.h; sourceTree = "<group>"; };
+		46B214A62378A67600DCC314 /* urlParser.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = urlParser.c; sourceTree = "<group>"; };
 		46C5D0AB236051D60016BE7F /* sCrapper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = sCrapper; sourceTree = BUILT_PRODUCTS_DIR; };
 		46C5D0C823605DB70016BE7F /* confParser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = confParser.c; sourceTree = "<group>"; };
 		46C5D0C923605DB70016BE7F /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
@@ -99,6 +102,7 @@
 		46C5D0B8236053260016BE7F /* headers */ = {
 			isa = PBXGroup;
 			children = (
+				46B214A52378A67600DCC314 /* urlParser.h */,
 				46D7BBA02372C73100257030 /* scrapping.h */,
 				46C5D0D323605DF20016BE7F /* confAction.h */,
 				46C5D0D223605DF20016BE7F /* confTask.h */,
@@ -124,6 +128,7 @@
 				46C5D0CB23605DB70016BE7F /* confTask.c */,
 				46C5D0C923605DB70016BE7F /* main.c */,
 				46D7BBA12372C73100257030 /* scrapping.c */,
+				46B214A62378A67600DCC314 /* urlParser.c */,
 			);
 			path = sources;
 			sourceTree = "<group>";
@@ -164,6 +169,9 @@
 		46C5D0A3236051D60016BE7F /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				KnownAssetTags = (
+					New,
+				);
 				LastUpgradeCheck = 1100;
 				ORGANIZATIONNAME = "CELIA PIQUET";
 				TargetAttributes = {
@@ -195,6 +203,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				46B214A72378A67600DCC314 /* urlParser.c in Sources */,
 				46D7BBA22372C73100257030 /* scrapping.c in Sources */,
 				46C5D0CF23605DB80016BE7F /* confTask.c in Sources */,
 				46C5D0CE23605DB80016BE7F /* confAction.c in Sources */,
@@ -319,6 +328,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				"OTHER_CFLAGS[arch=*]" = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;

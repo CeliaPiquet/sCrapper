@@ -10,6 +10,7 @@
 #define scrapper_h
     #include "confTask.h"
     #include "confAction.h"
+    #include "urlParser.h"
     #include <stdio.h>
     #include <curl/curl.h>
     #include <stdlib.h>

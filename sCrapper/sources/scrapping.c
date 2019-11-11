@@ -67,7 +67,9 @@ void *writeOnFile(void* url){
     }
     fclose(fp);
     free(destPath);
+    destPath = NULL;
     free(filePath);
+    filePath = NULL;
     return NULL;
 }
 
@@ -110,7 +112,7 @@ void runThreads(Task task, ListThread listThreads){
     }
 }
 
-int startScrapping(ListTask tasks){
+int startScrapping(ListTask tasks){                 //à actualiser avec la liste des urls
     Task actualTask;
     int nbThread;
     curl_global_init(CURL_GLOBAL_ALL); // initialize libcurl
@@ -123,7 +125,6 @@ int startScrapping(ListTask tasks){
         createActionThreads(&actualTask.actionsList, &listThreads);
         runThreads(actualTask, listThreads);
     }
-    
     
   
     

@@ -1,6 +1,6 @@
 =
 {name -> Mon site web}                                                                  # Nom de notre action
-{url -> https://stackoverflow.com/questions/5793760/including-libcurl-in-c-project}   # URL du site à récupérer
+{url -> https://stackoverflow.com/}   # URL du site à récupérer
 +
 {max-depth -> 2}
 {versioning -> 1}                                                                       # 1 ou 0 = on ou off
@@ -10,7 +10,7 @@
 {name -> Mon site web2}                                                                  # Nom de notre action
 {url -> https://stackoverflow.com}                                                       # URL du site à récupérer
 +
-{max-depth -> 0}
+{max-depth -> 3}
 {versioning -> 0}                                                                       # 1 ou 0 = on ou off
 {type -> (text/html)}
 

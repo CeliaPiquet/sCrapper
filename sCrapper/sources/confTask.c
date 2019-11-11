@@ -54,8 +54,11 @@ int completeTask(Task *task, FILE *fp, int *nbChar, ListAction *actionsList){
         index  = 0;
     }
     free(actualLine);
+    actualLine = NULL;
     free(actualAttributName);
+    actualAttributName = NULL;
     free(actualAttributValue);
+    actualAttributValue = NULL;
     return 1;
 }
 

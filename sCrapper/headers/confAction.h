@@ -14,7 +14,9 @@
     
     void cleanAction(Action *action);
     int completeAction(Action *action, FILE *fp, int *nbChar);
+    int completeListLinks(Action *action);
     void initAction(Action *action);
+    void initListLinks(ListLinks *listLinks);
     void displayAction(Action action);
     void setActionAttribut(char *attributName, Action *action, char *attributValue);
     void setActionAttributInt(char *attributName, Action *action, int attributValueInt);

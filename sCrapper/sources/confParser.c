@@ -37,19 +37,19 @@ int readConf(char* confPath, ListTask *tasks, ListAction *actionsList){
     
     if (fp != NULL && actualLine != NULL){
         while (getOneLine(actualLine, fp)){
+            
             nbCharRead = nbCharRead + (int)strlen(actualLine);
             removeCommentFromLine(actualLine);
             
             if(strcmp(actualLine,"=") == 0){                            // Création d'une action
-                Action newAction;
-                initAction(&newAction);
-                if (!completeAction(&newAction, fp, &nbCharRead)){      // Le ficher de conf n'est pas valide pour la créationd de l'action
+                Action *newAction = malloc(sizeof(Action));
+                initAction(newAction);
+                if (!completeAction(newAction, fp, &nbCharRead)){      // Le ficher de conf n'est pas valide pour la créationd de l'action
                     fprintf(stderr,"Fichier de configuration erroné.\n");
                     return 0;
                 }
-                actionsList->actions[actionsList->nbAction] = newAction;
+                actionsList->actions[actionsList->nbAction] = *newAction;
                 actionsList->nbAction ++;
-                
                 fseek(fp, nbCharRead, SEEK_SET);                        // On veut retourner à la ligne précédente donc on part du début du fichier et on se positionne au nombre de caractère déjà lu
             }
             
@@ -72,6 +72,7 @@ int readConf(char* confPath, ListTask *tasks, ListAction *actionsList){
         return 0;
     }
     free(actualLine);
+    actualLine = NULL;
     return 1;
 }
 
@@ -132,6 +133,7 @@ void cleanLine(char *line){
 
     }
     free(tmpLine);
+    tmpLine = NULL;
 }
 
 void getAttributName(char *actualLine, char *actualAttributName, int *index){ // Récupère les attributs avec des lignes "{attribut -> valeur}"

@@ -46,6 +46,8 @@ void cleanAction(Action *action){
 
 void initAction(Action *action){
     int i;
+    ListLinks *allLinks = malloc(sizeof(ListLinks));
+    initListLinks(allLinks);
     action->name = malloc(sizeof(char)*20);
     action->url = malloc(sizeof(char)*2000);
     action->maxDepth = 0;
@@ -56,6 +58,16 @@ void initAction(Action *action){
     for (i = 0; i <  action->sizeTypeList; i++){
         action->typeList[i] = malloc(sizeof(char)*20);
     }
+    action->urlsWithDepth = allLinks;
+}
+ 
+void initListLinks(ListLinks *listLinks){
+    listLinks->capacity = 10000;
+    listLinks->listUrls = malloc(sizeof(char*)*listLinks->capacity);
+    for (int i = 0; i < listLinks->capacity; i++){
+        listLinks->listUrls[i] = malloc(sizeof(char)*2000);
+    }
+    listLinks->size = 0;
 }
 
 int completeAction(Action *action, FILE *fp, int *nbChar){
@@ -112,17 +124,75 @@ int completeAction(Action *action, FILE *fp, int *nbChar){
         index = 0;
         
     }
+    
+    // Une fois l'action complète on remplis sa liste d'urls en fonction de son maxDepth
+    if (action->maxDepth){
+        completeListLinks(action);
+    }
+    
     free(actualLine);
+    actualLine = NULL;
     free(actualAttributName);
+    actualAttributName = NULL;
     free(actualAttributValue);
+    actualAttributValue = NULL;
     for (i = 0; i < 10; i++){
         if (actualAttributType[i] != NULL){
             free(actualAttributType[i]);
+            actualAttributType[i] = NULL;
         }
     }
     free(actualAttributType);
+    actualAttributType = NULL;
+    if (action->urlsWithDepth->size < 1 && action->maxDepth){
+       // return 0;
+    }
     return 1;
 }
+
+void displayLinks(ListLinks *list){
+    for (int i=0; i < list->size; i++){
+        printf("%d : %s\n", i, list->listUrls[i]);
+    }
+}
+
+int completeListLinks(Action *action){
+    FILE *fp;
+    char *filePath = malloc(sizeof(char)*200);
+    strcpy(filePath,PARENT_PATH) ;
+    strcat(filePath,"downloads/tmp.html");
+    
+    int size, i, j, startList=0;
+    
+    getPage(filePath, action->url);
+    fp = fopen(filePath,"r");
+
+    if(fp == NULL){
+        fprintf(stderr,"Erreur lors de l'ouverture du fichier.");
+        return 0;
+    }
+
+    getLinks(fp, action->urlsWithDepth);
+    remove(filePath);
+    printf("-------------------------------------------------------\n"); //for debug
+    printf("action : %s url : %s\n", action->name, action->url);         //for debug
+    displayLinks(action->urlsWithDepth);
+    for (i = 1; i < action->maxDepth+1; i++){
+        size = action->urlsWithDepth->size;
+        for (j = startList; j < size; j++){
+            getPage(filePath, action->urlsWithDepth->listUrls[j]);
+            fp = fopen(filePath,"r");
+            getLinks(fp, action->urlsWithDepth);
+            remove(filePath);
+        }
+        startList = size; // On ne regarde plus les url déjà vues
+    }
+    free(filePath);
+    filePath = NULL;
+    fclose(fp);
+    return 1;
+}
+
 
 void setActionAttribut(char *attributName, Action *action, char *attributValue){
     if (strcmp("name", attributName) == 0){
@@ -142,7 +212,10 @@ void setActionAttributInt(char *attributName, Action *action, int attributValueI
 
 void setActionAttributType(Action *action, char **tabList, int sizeTabList){
     int i;
-    for (i = 0; i < sizeTabList; i ++){
+    if(sizeTabList>action->sizeTypeList){ //trop de type pour une action (max 10)
+        return ;
+    }
+    for (i = 0; i < action->sizeTypeList; i ++){
         strcpy(action->typeList[i], tabList[i]); 
         if (strlen(action->typeList[i]) < 20){
             action->typeList[i][strlen(action->typeList[i])] = '\0';
@@ -157,11 +230,12 @@ void displayAction(Action action){
         return;
     }
     fprintf(stderr, "    {\n");
-    fprintf(stderr, "        name : %s\n", action.name);
-    fprintf(stderr, "        url : %s\n", action.url);
-    fprintf(stderr, "        maxDepth : %d\n", action.maxDepth);
-    fprintf(stderr, "        versioning : %d\n", action.hasVersionning);
-    fprintf(stderr, "        type : \n");
+    fprintf(stderr, "       name : %s\n", action.name);
+    fprintf(stderr, "       url : %s\n", action.url);
+    fprintf(stderr, "       maxDepth : %d\n", action.maxDepth);
+    fprintf(stderr, "       versioning : %d\n", action.hasVersionning);
+    fprintf(stderr, "       nbOfUrlsToParse : %d\n", action.urlsWithDepth->size);
+    fprintf(stderr, "       type : \n");
     for (i = 0; i < action.nbType; i++){
         if (action.typeList != NULL && action.typeList[i] != NULL){
             fprintf(stderr, "            %s\n", action.typeList[i]);
