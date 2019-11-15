@@ -8,9 +8,9 @@
 
 =
 {name -> Mon site web2}                                                                  # Nom de notre action
-{url -> https://rules.quantcount.com/rules-p-c1rF4kxgLUzNc.js}                                                       # URL du site à récupérer
+{url -> https://stackoverflow.com}                                                       # URL du site à récupérer
 +
-{max-depth -> 0}
+{max-depth -> 1}
 {versioning -> 0}                                                                       # 1 ou 0 = on ou off
 {type -> (text/html)}
 
