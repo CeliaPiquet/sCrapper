@@ -270,8 +270,8 @@ int setActionAttributInt(char *attributName, Action *action, char *attributValue
     } else if (strcmp("versioning", attributName) == 0){
         action->hasVersionning = atoi(attributValueInt);
     }
-    if (action->maxDepth > 3 || action->maxDepth < 0){
-        fprintf(stderr, "Fichier corrompu : max-depth doit être compris entre 0 et 3\n");
+    if (action->maxDepth > 2 || action->maxDepth < 0){
+        fprintf(stderr, "Fichier corrompu : max-depth doit être compris entre 0 et 2\n");
         return 0;
     }
     if (action->hasVersionning != 0 && action->hasVersionning != 1){
