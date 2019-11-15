@@ -19,6 +19,6 @@
     void cleanTaskAttributVariables(char **attributName, char **charAttribut, char **attributValueInt);
     void displayTask(Task task);
     int setActionListToTask(Task *task, char *actualLine, ListAction* allActions);
-    ListTask* initListTask(void);
+    ListTask* initListTask(int capacity);
 
 #endif /* confTask_h */

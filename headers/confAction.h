@@ -9,7 +9,7 @@
 #ifndef confAction_h
 #define confAction_h
 
-    ListType* initListType(void);
+    ListType* initListType(int capacity);
 
     ListAction* initListAction(int capacity);
     ListAction* getAllActionsFromConf(FILE *fp);

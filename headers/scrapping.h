@@ -10,6 +10,7 @@
 #define scrapping_h
 
 void startScrapping(ListTask *tasks);
+void getNameOfFile(char *nameOfFile, char *url);
 
 
 #endif /* scrapping_h */
