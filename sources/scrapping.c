@@ -25,7 +25,7 @@ static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream)
 }
 
 static void* run_one_thread(void *url){
-    CURL *curl_handle;
+    CURL *curl_handle = NULL;
     char *pagefilename = malloc(sizeof(char)*200);
     char *nameOfFile = malloc(sizeof(char)*20);
     if (pagefilename == NULL || nameOfFile == NULL){
@@ -40,44 +40,77 @@ static void* run_one_thread(void *url){
     // init the CURL session
     curl_handle = curl_easy_init();
     
-    // Set URL
-    curl_easy_setopt(curl_handle, CURLOPT_URL, url);
-    
-    // Switch on full protocol/debug output while testing
-    curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L);
-    
-    /* disable progress meter, set to 0L to enable and disable debug output */
-    curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1L);
-    
-    /* send all data to this function  */
-    curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
+    if (curl_handle){
+         curl_easy_setopt(curl_handle, CURLOPT_URL, url); // Set URL
+         //curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, 20L); // timeout de 20 secondes
+         curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L); // Switch on full protocol/debug output while testing
+         
+         /* disable progress meter, set to 0L to enable and disable debug output */
+         curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1L);
+         
+         /* send all data to this function  */
+         curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
 
-    /* open the file */
-    pagefile = fopen(pagefilename, "w+");
-   
-    if(pagefile) {
+         /* open the file */
+         pagefile = fopen(pagefilename, "w+");
         
-        /* write the page body to this file handle */
-        curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, pagefile);
+         if(pagefile) {
+             
+             /* write the page body to this file handle */
+             curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, pagefile);
 
-       /* get it! */
-       curl_easy_perform(curl_handle);
+            /* get it! */
+            curl_easy_perform(curl_handle);
 
-       /* close the header file */
-       fclose(pagefile);
-    } else {
-        printf("page file NOT ok\n");
+            /* close the header file */
+            fclose(pagefile);
+         } else {
+             printf("page file NOT ok\n");
+         }
+         /* cleanup curl stuff */
+          curl_easy_cleanup(curl_handle);
     }
-    /* cleanup curl stuff */
-     curl_easy_cleanup(curl_handle);
     
     
      return NULL;
 }
 
+static void* startActionThreads(void *action){
+    Action *newAction = (Action *) action;
+//    int i, error;
+//    pthread_t threads[newAction->allUrlsWithDepth.nbOfUrl];
+//    for (i = 0; i < newAction->allUrlsWithDepth.nbOfUrl; i++){
+//        error = pthread_create(&threads[i], NULL, run_one_thread, newAction->allUrlsWithDepth.tabUrls[i]);
+//        if (error != 0){
+//            fprintf(stderr, "Couldn't run task thread number 2-%d, errno %d\n", i, error);
+//        } else {
+//            fprintf(stderr, "Thread %d, gets %s\n", i, newAction->allUrlsWithDepth.tabUrls[i]);
+//        }
+//    }
+//    for(i = 0; i <  newAction->allUrlsWithDepth.nbOfUrl; i++) {
+//      pthread_join(threads[i], NULL);
+//      fprintf(stderr, "Thread 2-%d terminated\n", i);
+//    }
+    return NULL;
+}
+
 static void* startTaskTimer(void *task){
     Task *newTask = (Task*) task;
-    // Lancer les threads par action et en fonction du timing 
+    // Lancer les threads par action et en fonction du timing
+    int i, error;
+    pthread_t threads[newTask->actionsToRun.nbOfAction];
+    for (i = 0; i < newTask->actionsToRun.nbOfAction; i++){
+        error = pthread_create(&threads[i], NULL, startActionThreads, &(newTask->actionsToRun.tabAction[i]));
+        if (error != 0){
+            fprintf(stderr, "Couldn't run task thread number 1-%d, errno %d\n", i, error);
+        } else {
+            fprintf(stderr, "Thread %d, gets %s\n", i, newTask->actionsToRun.tabAction[i].name);
+        }
+    }
+    for(i = 0; i <  newTask->actionsToRun.nbOfAction; i++) {
+      pthread_join(threads[i], NULL);
+      fprintf(stderr, "Thread 1-%d terminated\n", i);
+    }
     return NULL;
 }
 
@@ -97,7 +130,7 @@ void startScrapping(ListTask *tasks){
     
     for(i = 0; i < tasks->nbOfTask; i++) {
       pthread_join(threads[i], NULL);
-      fprintf(stderr, "Thread %d terminated\n", i);
+      fprintf(stderr, "Thread 0-%d terminated\n", i);
     }
 
 }
