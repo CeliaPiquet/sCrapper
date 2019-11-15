@@ -1,37 +1,37 @@
 =
-{name -> Mon site web}                                                                  # Nom de notre action
-{url -> https://stackoverflow.com/}   # URL du site à récupérer
+{name -> National Geographic}                                                                  # Nom de notre action
+{url -> https://www.nationalgeographic.fr/}   # URL du site à récupérer
 +
 {max-depth -> 2}
 {versioning -> 1}                                                                       # 1 ou 0 = on ou off
 {type -> (text/html,image/jpeg,application/xml)}
 
 =
-{name -> Mon site web2}                                                                  # Nom de notre action
-{url -> https://rules.quantcount.com/rules-p-c1rF4kxgLUzNc.js}                                                       # URL du site à récupérer
+{name -> Geo}                                                                  # Nom de notre action
+{url -> https://www.geo.fr/}                                                       # URL du site à récupérer
 +
-{max-depth -> 0}
+{max-depth -> 1}
 {versioning -> 0}                                                                       # 1 ou 0 = on ou off
 {type -> (text/html)}
 
 =
-{name -> Google API Doc}
-{url -> https://developers.google.com/ad-manager/api/rel_notes#whats-new_1}
+{name -> Neon Mag}
+{url -> https://www.neonmag.fr/}
 +
 {max-depth -> 1}
 {versioning -> 0}
 {type -> ()}
 
 ==
-{name -> Ma super tâche}
+{name -> ALL}
 {minute -> 0}
 {second -> 5}
-(Mon site web2,Mon site web,Google API Doc)
+(National Geographic,Geo,Neon Mag)
 
 ==
-{name -> Ma deuxième super tâche}
+{name -> Tache Neon}
 {hour -> 1}
 {second -> 5}
-(Mon site web)
+(Neon Mag)
 
 
