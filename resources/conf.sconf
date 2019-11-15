@@ -1,24 +1,32 @@
 =
 {name -> Mon site web}                                                                  # Nom de notre action
-{url -> https://stackoverflow.com/questions/5793760/including-libcurl-in-c-project}   # URL du site à récupérer
+{url -> https://stackoverflow.com/}   # URL du site à récupérer
 +
 {max-depth -> 2}
 {versioning -> 1}                                                                       # 1 ou 0 = on ou off
 {type -> (text/html,image/jpeg,application/xml)}
 
 =
-    {name -> Mon site web2}                                                                  # Nom de notre action
-{url -> https://stackoverflow.com}                                                       # URL du site à récupérer
+{name -> Mon site web2}                                                                  # Nom de notre action
+{url -> https://rules.quantcount.com/rules-p-c1rF4kxgLUzNc.js}                                                       # URL du site à récupérer
 +
 {max-depth -> 0}
 {versioning -> 0}                                                                       # 1 ou 0 = on ou off
 {type -> (text/html)}
 
+=
+{name -> Google API Doc}
+{url -> https://developers.google.com/ad-manager/api/rel_notes#whats-new_1}
++
+{max-depth -> 1}
+{versioning -> 0}
+{type -> ()}
+
 ==
 {name -> Ma super tâche}
-{minute -> 2}
+{minute -> 0}
 {second -> 5}
-(Mon site web2,Mon site web)
+(Mon site web2,Mon site web,Google API Doc)
 
 ==
 {name -> Ma deuxième super tâche}

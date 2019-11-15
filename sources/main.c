@@ -2,36 +2,29 @@
 //  main.c
 //  sCrapper
 //
-//  Created by CELIA PIQUET on 14/10/2019.
+//  Created by CELIA PIQUET on 12/11/2019.
 //  Copyright © 2019 CELIA PIQUET. All rights reserved.
 //
-#include "../Headers/scrapper.h"
+
+#include "../headers/main.h"
 
 int main(int argc, const char * argv[]) {
-//    CURL *curlHandler;
-//    FILE *fp = fopen("/Users/cpiquet/dev/sCrapper/sCrapper/downloads/home.html","w+"); //fichier qui va recevoir l'information téléchargée
-//    int result;
-//
-//    if (fp == NULL){
-//        printf("Erreur d'ouverture de fichier\n");
-//        return 1;
-//    }
-//
-//    curlHandler = curl_easy_init();
-//    curl_easy_setopt(curlHandler, CURLOPT_URL, "https://stackoverflow.com/questions/5793760/including-libcurl-in-c-project");
-//    curl_easy_setopt(curlHandler, CURLOPT_WRITEDATA, fp);
-//    curl_easy_setopt(curlHandler, CURLOPT_FAILONERROR, 1L);
-//
-//    result = curl_easy_perform(curlHandler);
-//
-//    if(result == CURLE_OK){
-//        printf("Download successful !\n");
-//    } else {
-//        printf("ERROR: %s\n", curl_easy_strerror(result));
-//    }
-//    fclose(fp);
+    ListTask *tasksToRun = NULL;
     
-    readConf("/Users/cpiquet/dev/sCrapper/sCrapper/ressources/conf.sconf");
+    char *confFilePath = "/Users/cpiquet/dev/projets_esgi/sCrapper/sCrapper/resources/conf.sconf";
     
+    curl_global_init(CURL_GLOBAL_ALL);
+    tasksToRun = readConf(confFilePath);
+    
+    
+    if (tasksToRun != NULL){
+        // Scrapping
+        for (int i = 0; i < tasksToRun->nbOfTask; i++){
+            displayTask(tasksToRun->tabTask[i]);
+        }
+        startScrapping(tasksToRun);
+        return 1;
+    }
+    curl_global_cleanup();
     return 0;
 }
