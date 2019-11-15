@@ -51,35 +51,35 @@ void getLinks(FILE *fp, Action *action){
 }
 
 void getHtmlPage(char* savePath, char* url){
+    if (savePath && url){
+        CURL* curl = NULL;
 
-    CURL* curl;
+        FILE* fp = fopen(savePath,"wb+");
 
-    FILE* fp = fopen(savePath,"wb+");
+        int result;
 
-    int result;
-
-    if (fp == NULL){
-        printf("Erreur d'ouverture de fichier\n");
-    }
-    
-    curl = curl_easy_init();//Initialisation
-    if (curl){
-        curl_easy_setopt(curl, CURLOPT_URL, url);//Recuperation des informations au niv de l'URL
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);//Ecriture dans le fichier
-        curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);//Gestion erreurs
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-
-        result = curl_easy_perform(curl);//Resultat telechargement
-
-        if(result != CURLE_OK){
-            printf("    CURL ERROR: %s\n", curl_easy_strerror(result));
+        if (fp == NULL){
+            printf("Erreur d'ouverture de fichier\n");
         }
+        
+        curl = curl_easy_init();//Initialisation
+        if (curl){
+            curl_easy_setopt(curl, CURLOPT_URL, url);//Recuperation des informations au niv de l'URL
+            curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);//Ecriture dans le fichier
+            curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);//Gestion erreurs
+            curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+            curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
 
-        curl_easy_cleanup(curl);//Vide les ressources de curl
+            result = curl_easy_perform(curl);//Resultat telechargement
+
+            if(result != CURLE_OK){
+                printf("    CURL ERROR: %s\n", curl_easy_strerror(result));
+            }
+
+            curl_easy_cleanup(curl);//Vide les ressources de curl
+        }
+        fclose(fp);
     }
-
-
-    fclose(fp);
 }
 
 

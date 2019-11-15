@@ -37,15 +37,17 @@ ListTask *readConf(char *confFilePath){
     return allTasks;
 }
 
-int getOneLine(char* lineToUpdate, FILE *fp, int *charReaden, int sizeOfLine){
-    if (fgets(lineToUpdate, sizeOfLine, fp) == NULL){
+int getOneLine(char* lineToUpdate, FILE *fp, int *charReaden, int sizeMaxOfLine){
+    int sizeOfNewLine;
+    if (fgets(lineToUpdate, sizeMaxOfLine, fp) == NULL){
         return 0;
     }
+    sizeOfNewLine = (int)strlen(lineToUpdate);
     if (charReaden){
-        *charReaden = *charReaden + (int)strlen(lineToUpdate)-1;
+        *charReaden = *charReaden + sizeOfNewLine - 1;
     }
-    if (strlen(lineToUpdate) < sizeOfLine){
-        lineToUpdate[strlen(lineToUpdate)-1] = '\0';
+    if (sizeOfNewLine < sizeMaxOfLine){
+        lineToUpdate[sizeOfNewLine-1] = '\0';
     }
     return 1;
 }
@@ -81,15 +83,17 @@ void cleanLineUntilSpecificChar(char *line, char stop, int hasToStopNext){ // ha
 
 int getAttributName(char *attributName, char *line){
     int indexOfLine = 1, indexOfAttributName = 0;
-    while (line[indexOfLine] != ' ' && line[indexOfLine] != '>'){
-        if (indexOfLine + 1 >= SIZE_MAX_OF_LINE_CONF || indexOfAttributName >= 15){
+    while (indexOfLine < SIZE_MAX_OF_LINE_IN_CONF && line[indexOfLine] != ' ' && line[indexOfLine] != '>'){
+        if (indexOfAttributName >= SIZE_MAX_STR_ATTRIBUT){
             return 0;
         }
         attributName[indexOfAttributName] = line[indexOfLine];
         indexOfLine ++;
         indexOfAttributName ++;
     }
-    attributName[indexOfAttributName] = '\0';
+    if(indexOfAttributName<SIZE_MAX_STR_ATTRIBUT){
+        attributName[indexOfAttributName] = '\0';
+    }
     return isCorrectAttributName(attributName);
 }
 
@@ -97,13 +101,13 @@ int getAttributName(char *attributName, char *line){
 void getAttributValueStr(char *actualLine, char *actualAttributValue, int index, int sizeActualAttributValue){
     int indexAttributValue = 0;
     index ++;
-    while (actualLine[index] == '-' || actualLine[index] == '>'){
+    while ((index < SIZE_MAX_OF_LINE_IN_CONF) && (actualLine[index] == '-' || actualLine[index] == '>')){
         index ++;
     }
-    if (actualLine[index] == ' '){
+    if (index < SIZE_MAX_OF_LINE_IN_CONF && actualLine[index] == ' '){
         index ++;
     }
-    while (index < SIZE_MAX_OF_LINE_CONF && actualLine[index] != '}' && indexAttributValue < sizeActualAttributValue){
+    while (index < SIZE_MAX_OF_LINE_IN_CONF && actualLine[index] != '}' && indexAttributValue < sizeActualAttributValue){
         actualAttributValue[indexAttributValue] = actualLine[index];
         indexAttributValue ++;
         index ++;
@@ -122,7 +126,7 @@ int getAttributValueTabStr(char *actualLine, char **attributValue, int index){
     if (actualLine == NULL || attributValue == NULL){
         return 0;
     }
-    while (actualLine[index] == '-' || actualLine[index] == '>'){
+    while ((index < SIZE_MAX_OF_LINE_IN_CONF) && (actualLine[index] == '-' || actualLine[index] == '>')){
         index ++;
     }
     if (actualLine[index] == ' '){
@@ -131,9 +135,9 @@ int getAttributValueTabStr(char *actualLine, char **attributValue, int index){
     if (actualLine[index] == '('){
         index ++;
     }
-    while (index < SIZE_MAX_OF_LINE_CONF && actualLine[index] != ')' && counterTabList < 10){ // Boucle pour tous les mots
+    while (index < SIZE_MAX_OF_LINE_IN_CONF && actualLine[index] != ')' && counterTabList < NB_MAX_OF_TYPES_PER_ACTION){ // Boucle pour tous les mots
         counterInWord = 0;
-        while(index < SIZE_MAX_OF_LINE_CONF && actualLine[index] != ','){ // Boucle pour un mot
+        while(index < SIZE_MAX_OF_LINE_IN_CONF && actualLine[index] != ',' && counterInWord < SIZE_MAX_STR_ATTRIBUT){ // Boucle pour un mot
             if (actualLine[index] == ')'){
                 break;
             }
@@ -141,10 +145,10 @@ int getAttributValueTabStr(char *actualLine, char **attributValue, int index){
             counterInWord ++;
             index ++;
         }
-        if (counterInWord < 20){
+        if (counterInWord < SIZE_MAX_STR_ATTRIBUT){
             attributValue[counterTabList][counterInWord] = '\0';
         }
-        if (actualLine[index] == ','){
+        if (index < SIZE_MAX_OF_LINE_IN_CONF && actualLine[index] == ','){
             index ++;
         }
         counterTabList ++;

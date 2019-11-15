@@ -8,46 +8,21 @@
 
 #include "../headers/main.h"
 #include <curl/curl.h>
-void cleanListAction(ListAction *allActions){
-    if (allActions != NULL && allActions->tabAction != NULL){
-        for (int i = 0; i < allActions->nbOfAction; i++){
-            cleanAction(&(allActions->tabAction[i]));
-        }
-        free(allActions->tabAction);
-    }
-}
-
-
-void cleanAction(Action *action){
-    int i;
-    if (action != NULL){
-        free(action->name);
-        free(action->url);
-        for (i = 0; i < action->typesToTarget.capacity; i++){
-            free(action->typesToTarget.tabType[i]);
-        }
-        free(action->typesToTarget.tabType);
-        for (i = 0; i < action->allUrlsWithDepth.capacity; i++){
-            free(action->allUrlsWithDepth.tabUrls[i]);
-        }
-        free(action->allUrlsWithDepth.tabUrls);
-    }
-}
 
 ListAction* getAllActionsFromConf(FILE *fp){
     int charReaden = 0;
     Action *actionToAdd = NULL;
-    char *actualLine = malloc(sizeof(char)*SIZE_MAX_OF_LINE_CONF);
+    char *actualLine = malloc(sizeof(char)*SIZE_MAX_OF_LINE_IN_CONF);
     if (actualLine == NULL){
         return NULL;
     }
     
-    ListAction *allActions = initListAction(10);
+    ListAction *allActions = initListAction(NB_MAX_OF_ACTIONS_IN_CONF);
     if(allActions == NULL){
         free(actualLine);
         return NULL;
     }
-    while (getOneLine(actualLine, fp, &charReaden, SIZE_MAX_OF_LINE_CONF)){ // On lit chaque ligne
+    while (getOneLine(actualLine, fp, &charReaden, SIZE_MAX_OF_LINE_IN_CONF)){ // On lit chaque ligne
         cleanOneLine(actualLine);       // On nettoie la ligne des espaces superflues et des commentaires
         if(strcmp(actualLine,"=") == 0){
             actionToAdd = createOneActionFromConf(fp, &charReaden);
@@ -75,7 +50,7 @@ int addActionToList(ListAction *listAction, Action *actionToAdd){
 
 
 Action* createOneActionFromConf(FILE *fp, int *charReaden){
-    char *actualLine = malloc(sizeof(char)*SIZE_MAX_OF_LINE_CONF);
+    char *actualLine = malloc(sizeof(char)*SIZE_MAX_OF_LINE_IN_CONF);
     if (actualLine == NULL){
         return NULL;
     }
@@ -84,7 +59,7 @@ Action* createOneActionFromConf(FILE *fp, int *charReaden){
         free(actualLine);
         return NULL;
     }
-    while(getOneLine(actualLine, fp, charReaden, SIZE_MAX_OF_LINE_CONF) && actualLine[0] != '='){
+    while(getOneLine(actualLine, fp, charReaden, SIZE_MAX_OF_LINE_IN_CONF) && actualLine[0] != '='){
         cleanOneLine(actualLine);
         if (strlen(actualLine) == 0 || actualLine[0] == '+'){ // On ignore ces lignes
             continue;
@@ -94,15 +69,38 @@ Action* createOneActionFromConf(FILE *fp, int *charReaden){
             return NULL;
         }
     }
+    free(actualLine);
     if(!completeListLinks(newAction)){
-        free(actualLine);
         return NULL;
     }
-    free(actualLine);
     return newAction;
 }
 
+void cleanListAction(ListAction *allActions){
+    if (allActions != NULL && allActions->tabAction != NULL){
+        for (int i = 0; i < allActions->nbOfAction; i++){
+            cleanAction(&(allActions->tabAction[i]));
+        }
+        free(allActions->tabAction);
+    }
+}
 
+
+void cleanAction(Action *action){
+    int i;
+    if (action != NULL){
+        free(action->name);
+        free(action->url);
+        for (i = 0; i < action->typesToTarget.capacity; i++){
+            free(action->typesToTarget.tabType[i]);
+        }
+        free(action->typesToTarget.tabType);
+        for (i = 0; i < action->allUrlsWithDepth.capacity; i++){
+            free(action->allUrlsWithDepth.tabUrls[i]);
+        }
+        free(action->allUrlsWithDepth.tabUrls);
+    }
+}
 
 int completeListLinks(Action *action){
     fprintf(stderr, "Get all links of action '%s'...\n", action->name);
@@ -115,13 +113,14 @@ int completeListLinks(Action *action){
 
     int sizeOfUrl = (int)strlen(action->url);
     strcpy(action->allUrlsWithDepth.tabUrls[0], action->url);
-    if (sizeOfUrl < SIZE_MAX_OF_LINE_DOWNLOADS){
+    if (sizeOfUrl < SIZE_MAX_URL){
         action->allUrlsWithDepth.tabUrls[0][sizeOfUrl] = '\0';
     }
     action->allUrlsWithDepth.nbOfUrl ++;
 
 
     for (i = 0; i < action->maxDepth; i++){
+        fprintf(stderr, "   Depth %d running...\n", i+1);
         size = action->allUrlsWithDepth.nbOfUrl;
         for (j = startList; j < size; j++){
             sprintf(filePath, "%sdownloads/tmpFile%d.html", PARENT_PATH, j);
@@ -166,7 +165,7 @@ void cleanActionAttributVariables(char **attributName, char **charAttribut, char
         free(*attributValueInt);
     }
     if (*stringTabAttribut != NULL){
-        for (int i = 0; i < 10; i ++){
+        for (int i = 0; i < NB_MAX_OF_TYPES_PER_ACTION; i ++){
             if ((*stringTabAttribut)[i] != NULL){
                 free((*stringTabAttribut)[i]);
             }
@@ -176,12 +175,12 @@ void cleanActionAttributVariables(char **attributName, char **charAttribut, char
 }
 
 int initActionAttributVariables(char **attributName, char **charAttribut, char **attributValueInt, char ***stringTabAttribut){
-    *attributName = malloc(sizeof(char)*SIZE_MAX_ATTRIBUT_NAME);
+    *attributName = malloc(sizeof(char)*SIZE_MAX_STR_ATTRIBUT);
     if (*attributName == NULL){
         return 0;
     }
     
-    *charAttribut = malloc(sizeof(char)*SIZE_MAX_ATTRIBUT_VALUE);
+    *charAttribut = malloc(sizeof(char)*SIZE_MAX_URL); //On prend le plus grand possible, soit l'url
     if(*charAttribut == NULL){
         free(*attributName);
         return 0;
@@ -194,12 +193,12 @@ int initActionAttributVariables(char **attributName, char **charAttribut, char *
         return 0;
     }
     
-    *stringTabAttribut = malloc(sizeof(char*)*10);
+    *stringTabAttribut = malloc(sizeof(char*)*NB_MAX_OF_TYPES_PER_ACTION);
     if (*stringTabAttribut != NULL){
-        for (int i = 0; i < 10; i ++){
-            (*stringTabAttribut)[i] = malloc(sizeof(char)*20);
+        for (int i = 0; i < NB_MAX_OF_TYPES_PER_ACTION; i ++){
+            (*stringTabAttribut)[i] = malloc(sizeof(char)*SIZE_MAX_STR_ATTRIBUT);
             if ((*stringTabAttribut)[i] == NULL){
-                cleanTabOfString(*stringTabAttribut, 10);
+                cleanTabOfString(*stringTabAttribut, NB_MAX_OF_TYPES_PER_ACTION);
                 free(*attributName);
                 free(*attributValueInt);
                 free(*stringTabAttribut);
@@ -234,7 +233,7 @@ int completeActionAttribut(Action *action, char *actualLine){
     }
     
     if (strcmp(attributName,"name") == 0 || strcmp(attributName,"url") == 0){                            //la valeur de l'attribue sera une chaine de caractères
-        getAttributValueStr(actualLine, attributValueStr, (int)strlen(attributName)+1, SIZE_MAX_ATTRIBUT_VALUE);
+        getAttributValueStr(actualLine, attributValueStr, (int)strlen(attributName)+1, SIZE_MAX_URL);
         setActionAttributStr(attributName, action, attributValueStr);
     } else if (strcmp(attributName, "max-depth") == 0 || strcmp(attributName,"versioning") == 0){       // la valeur sera un entier
         getAttributValueStr(actualLine, attributValueInt, (int)strlen(attributName)+1, 2);
@@ -271,8 +270,8 @@ int setActionAttributInt(char *attributName, Action *action, char *attributValue
     } else if (strcmp("versioning", attributName) == 0){
         action->hasVersionning = atoi(attributValueInt);
     }
-    if (action->maxDepth > 2 || action->maxDepth < 0){
-        fprintf(stderr, "Fichier corrompu : max-depth doit être compris entre 0 et 2\n");
+    if (action->maxDepth > 3 || action->maxDepth < 0){
+        fprintf(stderr, "Fichier corrompu : max-depth doit être compris entre 0 et 3\n");
         return 0;
     }
     if (action->hasVersionning != 0 && action->hasVersionning != 1){
@@ -284,10 +283,17 @@ int setActionAttributInt(char *attributName, Action *action, char *attributValue
 
 
 void setActionAttributStr(char *attributName, Action *action, char *attributValue){
+    int sizeAttribut = (int)strlen(attributValue);
     if (strcmp("name", attributName) == 0){
         strcpy(action->name, attributValue);
+        if (sizeAttribut < SIZE_MAX_STR_ATTRIBUT){
+            action->name[sizeAttribut] = '\0';
+        }
     } else if (strcmp("url", attributName) == 0){
         strcpy(action->url, attributValue);
+        if (sizeAttribut < SIZE_MAX_URL){
+            action->url[sizeAttribut] = '\0';
+        }
     }
 }
 
@@ -296,9 +302,13 @@ int setActionAttributTabStr(char *attributName, Action *action, char **attributV
         return 0;
     }
     ListType *types = &action->typesToTarget;
-    int i = 0;
+    int i = 0, sizeTypeToCopy;
     while (i < sizeOfTabStr && i < types->capacity){
         strcpy(types->tabType[i], attributValueTabStr[i]);
+        sizeTypeToCopy = (int)strlen(attributValueTabStr[i]);
+        if ( sizeTypeToCopy < SIZE_MAX_STR_ATTRIBUT){
+            types->tabType[i][sizeTypeToCopy] = '\0';
+        }
         i ++;
         types->nbOfType ++;
     }

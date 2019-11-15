@@ -12,7 +12,7 @@ int addLinkToList(ListLinks *list, char *url){
     if (list == NULL){
         return 0;
     }
-    if (isAlreadyInList(list, url)){
+    if (list && url && isAlreadyInList(list, url)){
         return 1;
     }
     if (list->capacity == list->nbOfUrl){
@@ -36,8 +36,10 @@ int addLinkToList(ListLinks *list, char *url){
 int isAlreadyInList(ListLinks *list, char *url){
     int i;
     for (i = 0; i < list->nbOfUrl; i++){
-        if(strcmp(list->tabUrls[i],url) == 0){
-            return 1;
+        if (list->tabUrls[i] && url){
+            if(strcmp(list->tabUrls[i],url) == 0){
+                return 1;
+            }
         }
     }
     return 0;
