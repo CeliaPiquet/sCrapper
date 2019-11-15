@@ -90,35 +90,38 @@ void* startUrlThreads(void *url){
         char *nameOfFile = malloc(sizeof(char)*20);
         char *pagefilename = malloc(sizeof(char)*SIZE_MAX_URL);
         if (nameOfFile){
+            if (pagefilename){
                 getNameOfFile(nameOfFile, url);
                 sprintf(pagefilename, "%sdownloads/%s.html", PARENT_PATH, nameOfFile);
-            if(strlen(pagefilename)<SIZE_MAX_URL){
-                pagefilename[strlen(pagefilename)] = '\0';
-            }
-                CURL *curl_handle = curl_easy_init();
+                if(strlen(pagefilename)<SIZE_MAX_URL){
+                    pagefilename[strlen(pagefilename)] = '\0';
+                }
+                fprintf(stderr, "-> %s\n", pagefilename);
                 
+                CURL *curl_handle = curl_easy_init();
+    
                 if (curl_handle){
                      curl_easy_setopt(curl_handle, CURLOPT_URL, url); // Set URL
                      //curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, 20L); // timeout de 20 secondes
                      curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L); // Switch on full protocol/debug output while testing
-                     
+    
                      /* disable progress meter, set to 0L to enable and disable debug output */
                      curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1L);
-                     
+    
                      /* send all data to this function  */
                      curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
-
+    
                      /* open the file */
-                     FILE *pagefile = fopen(nameOfFile, "w+");
-                    
+                     FILE *pagefile = fopen(pagefilename, "w+");
+    
                      if(pagefile) {
-                         
+    
                          /* write the page body to this file handle */
                          curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, pagefile);
-
+    
                         /* get it! */
                         curl_easy_perform(curl_handle);
-
+    
                         /* close the header file */
                         fclose(pagefile);
                      } else {
@@ -126,6 +129,8 @@ void* startUrlThreads(void *url){
                      }
                      /* cleanup curl stuff */
                       curl_easy_cleanup(curl_handle);
+                }
+                free(pagefilename);
             }
             free(nameOfFile);
         }
@@ -179,16 +184,14 @@ static void* startTaskTimer(void *task){
 }
 
 void startScrapping(ListTask *tasks){
-    Task *actualTask = malloc(sizeof(Task));
     int i, error;
     pthread_t threads[tasks->nbOfTask];
     for (i = 0; i < tasks->nbOfTask; i++){
-        actualTask = &tasks->tabTask[i];
-        error = pthread_create(&threads[i], NULL, startTaskTimer, (void *)actualTask);
+        error = pthread_create(&threads[i], NULL, startTaskTimer, (void *)&(tasks->tabTask[i]));
         if (error != 0){
             fprintf(stderr, "Couldn't run thread number %d, errno %d\n", i, error);
         } else {
-            fprintf(stderr, "Thread %d, gets %s\n", i, actualTask->name);
+            fprintf(stderr, "Thread %d, gets %s\n", i, tasks->tabTask[i].name);
         }
     }
     
