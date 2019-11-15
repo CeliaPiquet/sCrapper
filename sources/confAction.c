@@ -125,20 +125,21 @@ int completeListLinks(Action *action){
         size = action->allUrlsWithDepth.nbOfUrl;
         for (j = startList; j < size; j++){
             sprintf(filePath, "%sdownloads/tmpFile%d.html", PARENT_PATH, j);
-            getHtmlPage(filePath, action->allUrlsWithDepth.tabUrls[j]);
-            fp = fopen(filePath,"r");
-            if (fp != NULL){
-                getLinks(fp, action);
-                fclose(fp);
-                fp = NULL;
-            } else {
-                fprintf(stderr, "Erreur d'ouverture de fichier\n");
+            if(action->allUrlsWithDepth.tabUrls[j]){
+                getHtmlPage(filePath, action->allUrlsWithDepth.tabUrls[j]);
+                fp = fopen(filePath,"r");
+                if (fp != NULL){
+                    getLinks(fp, action);
+                    fclose(fp);
+                    fp = NULL;
+                } else {
+                    fprintf(stderr, "Erreur d'ouverture de fichier\n");
+                }
+                remove(filePath);
             }
-            remove(filePath);
         }
         startList = size; // On ne regarde plus les url déjà vues
     }
-
     free(filePath);
     return 1;
 }

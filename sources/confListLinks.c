@@ -30,7 +30,6 @@ int addLinkToList(ListLinks *list, char *url){
     }
     strcpy(list->tabUrls[list->nbOfUrl], url);
     list->nbOfUrl ++;
-    
     return 1;
 }
 
