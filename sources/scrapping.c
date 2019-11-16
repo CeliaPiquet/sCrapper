@@ -118,7 +118,7 @@ void* startUrlThreads(void *url){
     
                          /* write the page body to this file handle */
                          curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, pagefile);
-    
+                        
                         /* get it! */
                         curl_easy_perform(curl_handle);
     
@@ -200,4 +200,30 @@ void startScrapping(ListTask *tasks){
       fprintf(stderr, "Thread 0-%d terminated\n", i);
     }
 
+}
+
+int checkContentType(CURL* curl, char* typeAction){
+    int result;
+    char* typeContentCurl;
+
+    if(curl)
+    {
+        curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &typeContentCurl);
+
+        result = strcmp(typeContentCurl, typeAction);
+
+        if(result == 0){
+            printf("Content type authorized");
+            return 1;
+        }
+        else{
+            printf("The content type doesn't match.");
+            return 0;
+        }
+    }
+    else
+    {
+        printf("Curl object null");
+        return 0;
+    }
 }
