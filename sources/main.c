@@ -9,19 +9,19 @@
 #include "../headers/main.h"
 
 int main(int argc, const char * argv[]) {
+    fprintf(stderr,"Chargement de la conf...\n\n");
     ListTask *tasksToRun = NULL;
-    
-    char *confFilePath = "/Users/cpiquet/dev/projets_esgi/sCrapper/sCrapper/resources/conf.sconf";
-    
+
     curl_global_init(CURL_GLOBAL_ALL);
-    tasksToRun = readConf(confFilePath);
-    
-    
+    tasksToRun = readConf(CONF_PATH);
+
+
     if (tasksToRun != NULL){
-        // Scrapping
+        fprintf(stderr,"\nConfiguration ok\n\nLancement des tâches :\n");
         for (int i = 0; i < tasksToRun->nbOfTask; i++){
             displayTask(tasksToRun->tabTask[i]);
         }
+        
         startScrapping(tasksToRun);
         return 1;
     }

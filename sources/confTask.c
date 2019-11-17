@@ -10,17 +10,17 @@
 
 ListTask *getAllTasksFromConnf(FILE *fp, ListAction *allActions){
     fseek(fp, 0, SEEK_SET); // On se replace au début du fichier
-    char *actualLine = malloc(sizeof(char)*SIZE_MAX_OF_LINE_CONF);
+    char *actualLine = malloc(sizeof(char)*SIZE_MAX_OF_LINE_IN_CONF);
     int charReaden;
     Task *taskToAdd = NULL;
     
-    ListTask *allTasks = initListTask();
+    ListTask *allTasks = initListTask(SIZE_MAX_TASK_LIST);
     if (allTasks == NULL){
         free(actualLine);
         return NULL;
     }
     
-    while (getOneLine(actualLine, fp, &charReaden, SIZE_MAX_OF_LINE_CONF)){ // On lit chaque ligne
+    while (getOneLine(actualLine, fp, &charReaden, SIZE_MAX_OF_LINE_IN_CONF)){ // On lit chaque ligne
         cleanOneLine(actualLine);       // On nettoie la ligne des espaces superflues et des commentaires
         if(strcmp(actualLine,"==") == 0){
             taskToAdd = createOneTaskFromConf(fp, &charReaden, allActions);
@@ -37,7 +37,7 @@ ListTask *getAllTasksFromConnf(FILE *fp, ListAction *allActions){
 }
 
 Task *createOneTaskFromConf(FILE *fp, int  *charReaden, ListAction *allActions){
-    char *actualLine = malloc(sizeof(char)*SIZE_MAX_OF_LINE_CONF);
+    char *actualLine = malloc(sizeof(char)*SIZE_MAX_OF_LINE_IN_CONF);
     if (actualLine == NULL){
         return NULL;
     }
@@ -47,7 +47,7 @@ Task *createOneTaskFromConf(FILE *fp, int  *charReaden, ListAction *allActions){
         return NULL;
     }
     
-    while(getOneLine(actualLine, fp, charReaden, SIZE_MAX_OF_LINE_CONF) && actualLine[0] != '='){
+    while(getOneLine(actualLine, fp, charReaden, SIZE_MAX_OF_LINE_IN_CONF) && actualLine[0] != '='){
         cleanOneLine(actualLine);
         if (strlen(actualLine) == 0 || actualLine[0] == '+'){ // On ignore ces lignes
             continue;
@@ -61,32 +61,6 @@ Task *createOneTaskFromConf(FILE *fp, int  *charReaden, ListAction *allActions){
     return newTask;
 }
 
-int getActionName(char *actualLine, char *actionName){
-    int index = 0;
-    actionName[0] = '\0';
-    while (index < strlen(actualLine) && actualLine[index] != ',' && actualLine[index] != ')' && index-1 < SIZE_MAX_ATTRIBUT_VALUE){
-        actionName[index] = actualLine[index];
-        index ++;
-    }
-    if (index != SIZE_MAX_ATTRIBUT_VALUE){
-        actionName[index] = '\0';
-    }
-    if (index == strlen(actualLine)){
-        return 0;
-    }
-    return 1;
-}
-
-Action *getActionFromList(char *actionName, ListAction *allActions){
-    int i;
-    for (i = 0; i < allActions->nbOfAction; i++){
-        if (strcmp(actionName, allActions->tabAction[i].name) == 0){
-            return &allActions->tabAction[i];
-        }
-    }
-    return NULL;
-}
-
 int addActionToTask(Task *task, Action *action){
     if (task == NULL || action == NULL || task->actionsToRun.nbOfAction == task->actionsToRun.capacity){
         return 0;
@@ -97,34 +71,35 @@ int addActionToTask(Task *task, Action *action){
 }
 
 int setActionListToTask(Task *task, char *actualLine, ListAction* allActions){
-    char *actionName = malloc(sizeof(char)*SIZE_MAX_ATTRIBUT_VALUE);
-    int charReaden = 1;
+    char *actionName = malloc(sizeof(char)*SIZE_MAX_STR_ATTRIBUT);
+    int charReaden = 1, sizeActualLine, sizeTmp;
     if (actionName == NULL){
         return 0;
     }
-    char *tmpLine = malloc(sizeof(char)*strlen(actualLine));
+    sizeActualLine = (int)strlen(actualLine);
+    char *tmpLine = malloc(sizeof(char)*sizeActualLine);
     if (tmpLine == NULL){
         free(actionName);
         return 0;
     }
     Action *actualAction = NULL;
     strcpy(tmpLine, actualLine+charReaden);
-    
+    sizeTmp = (int)strlen(actualLine+charReaden);
+    if(sizeTmp < sizeActualLine){
+        tmpLine[sizeTmp] = '\0';
+    }
     while(getActionName(tmpLine, actionName)){
         actualAction = getActionFromList(actionName, allActions);
         charReaden = charReaden + (int)strlen(actionName) + 1;
-        if (actualAction != NULL){
-            if (!addActionToTask(task, actualAction)){
-                free(actionName);
-                free(tmpLine);
-                return 0;
-            }
-        } else {
-            free(actionName);
-            free(tmpLine);
-            return 0;
+        if (actualAction == NULL || !addActionToTask(task, actualAction)){
+            break;
         }
+        
         strcpy(tmpLine, actualLine+charReaden);
+        sizeTmp = (int)strlen(actualLine+charReaden);
+        if(sizeTmp < sizeActualLine){
+            tmpLine[sizeTmp] = '\0';
+        }
     }
     free(actionName);
     free(tmpLine);
@@ -132,12 +107,12 @@ int setActionListToTask(Task *task, char *actualLine, ListAction* allActions){
 }
 
 int initTaskAttributVariables(char **attributName, char **charAttribut, char **charAttributForInt){
-    *attributName = malloc(sizeof(char)*15);
+    *attributName = malloc(sizeof(char)*SIZE_MAX_STR_ATTRIBUT);
     if (*attributName == NULL){
         return 0;
     }
     
-    *charAttribut = malloc(sizeof(char)*1000);
+    *charAttribut = malloc(sizeof(char)*SIZE_MAX_STR_ATTRIBUT);
     if(*charAttribut == NULL){
         free(*attributName);
         return 0;
@@ -182,7 +157,7 @@ int completeTaskAttribut(Task *task, char* actualLine, ListAction *allActions){
     }
      
     if (strcmp(attributName,"name") == 0){                                                  //la valeur de l'attribue sera une chaine de caractères
-        getAttributValueStr(actualLine, attributValueStr, (int)strlen(attributName)+1, SIZE_MAX_ATTRIBUT_VALUE);
+        getAttributValueStr(actualLine, attributValueStr, (int)strlen(attributName)+1, SIZE_MAX_STR_ATTRIBUT);
         setTaskAttributStr(attributName, task, attributValueStr);
     } else {                                                                                // la valeur sera un entier
         getAttributValueStr(actualLine, attributValueInt, (int)strlen(attributName)+1, 3);

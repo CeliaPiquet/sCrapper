@@ -8,17 +8,71 @@
 
 #include "../headers/main.h"
 
+ListArgStruct* initListArgStruct(int capacity){
+    ListArgStruct *list = malloc(sizeof(ListArgStruct));
+    if (list == NULL){
+        return NULL;
+    }
+    list->capacity = capacity;
+    list->nbOfArgs = 0;
+    list->tabArg = malloc(sizeof(ArgStruct)*list->capacity);
+    if (list->tabArg == NULL){
+        free(list);
+        return NULL;
+    }
+    return list;
+}
+
+ArgStruct* initArg(int nbTypes){
+    ArgStruct *arg = malloc(sizeof(ArgStruct));
+    if(!arg){
+        return NULL;
+    }
+    arg->actionName = malloc(sizeof(char)*SIZE_MAX_STR_ATTRIBUT);
+    if (!arg->actionName){
+        free(arg);
+        return NULL;
+    }
+    arg->url = malloc(sizeof(char)*SIZE_MAX_URL);
+    if (!arg->url){
+        free(arg->actionName);
+        free(arg);
+        return NULL;
+    }
+    
+    arg->extension = malloc(sizeof(char)*SIZE_MAX_STR_ATTRIBUT);
+    if (!arg->extension){
+        free(arg->url);
+        free(arg->actionName);
+        free(arg);
+        return NULL;
+    }
+    
+    arg->index = 0;
+    arg->needVersioning = 0;
+    ListType *list = initListType(nbTypes);
+    if (!list){
+        free(arg->url);
+        free(arg->actionName);
+        free(arg->extension);
+        free(arg);
+        return NULL;
+    }
+    arg->listType = *list;
+    return arg;
+}
+
 Task* initTask(void){
     Task *task = malloc(sizeof(Task));
     if (task == NULL){
         return NULL;
     }
-    task->name = malloc(sizeof(char)*SIZE_MAX_ATTRIBUT_VALUE);
+    task->name = malloc(sizeof(char)*SIZE_MAX_STR_ATTRIBUT);
     if (task->name == NULL){
         free(task);
         return NULL;
     }
-    ListAction *listActions = initListAction(5);
+    ListAction *listActions = initListAction(NB_MAX_OF_ACTION_PER_TASK);
     if (listActions == NULL){
         free(task->name);
         free(task);
@@ -31,12 +85,12 @@ Task* initTask(void){
     return task;
 }
 
-ListTask* initListTask(void){
+ListTask* initListTask(int capacity){
     ListTask *list = malloc(sizeof(ListTask));
     if (list == NULL){
         return NULL;
     }
-    list->capacity = 10;
+    list->capacity = capacity;
     list->nbOfTask = 0;
     list->tabTask = malloc(sizeof(Task)*list->capacity);
     if (list->tabTask == NULL){
@@ -53,18 +107,18 @@ Action* initAction(void){
     }
     action->hasVersionning = 0;
     action->maxDepth = 0;
-    action->name = malloc(sizeof(char)*SIZE_MAX_ATTRIBUT_VALUE);
+    action->name = malloc(sizeof(char)*SIZE_MAX_STR_ATTRIBUT);
     if (action->name == NULL){
         free(action);
         return NULL;
     }
-    action->url = malloc(sizeof(char)*SIZE_MAX_ATTRIBUT_VALUE);
+    action->url = malloc(sizeof(char)*SIZE_MAX_URL);
     if(action->url == NULL){
         free(action->name);
         free(action);
         return NULL;
     }
-    ListLinks *listLinks = initListLinks(1000);
+    ListLinks *listLinks = initListLinks(INITIAL_NB_OF_LINKS_PER_ACTION);
     if (listLinks == NULL){
         free(action->name);
         free(action->url);
@@ -72,8 +126,8 @@ Action* initAction(void){
         return NULL;
     }
     action->allUrlsWithDepth = *listLinks;
-
-    ListType *listType = initListType();
+    
+    ListType *listType = initListType(NB_MAX_OF_TYPES_PER_ACTION);
     if (listType == NULL){
         freeListLinks(&action->allUrlsWithDepth);
         free(action->name);
@@ -82,15 +136,18 @@ Action* initAction(void){
         return NULL;
     }
     action->typesToTarget = *listType;
+    
+    pthread_mutex_init(&action->mutexAction, NULL);
+    
     return action;
 }
 
-ListType* initListType(void){
+ListType* initListType(int capacity){
     ListType *list = malloc(sizeof(ListType));
     if (list == NULL){
         return NULL;
     }
-    list->capacity = 10;
+    list->capacity = capacity;
     list->nbOfType = 0;
     list->tabType = malloc(sizeof(char*)*list->capacity);
     if (list->tabType == NULL){
@@ -98,7 +155,7 @@ ListType* initListType(void){
         return NULL;
     }
     for (int i = 0; i < list->capacity; i++){
-        list->tabType[i] = malloc(sizeof(char)*20);
+        list->tabType[i] = malloc(sizeof(char)*SIZE_MAX_STR_ATTRIBUT);
         if (list->tabType[i] == NULL){
             for (int j = i-1; j >= 0; j--){
                 free(list->tabType[j]);
@@ -113,6 +170,9 @@ ListType* initListType(void){
 
 ListLinks* initListLinks(int capacity){
     ListLinks *list = malloc(sizeof(ListLinks));
+    if (list == NULL){
+        return NULL;
+    }
     list->capacity = capacity;
     list->nbOfUrl = 0;
     list->tabUrls = malloc(sizeof(char*)*list->capacity);
@@ -121,7 +181,7 @@ ListLinks* initListLinks(int capacity){
         return NULL;
     }
     for (int i = 0; i < list->capacity; i++){
-        list->tabUrls[i] = malloc(sizeof(char)*SIZE_MAX_OF_LINE_DOWNLOADS);
+        list->tabUrls[i] = malloc(sizeof(char)*SIZE_MAX_URL);
         if (list->tabUrls[i] == NULL){
             for (int j = i-1; j >= 0; j--){
                 free(list->tabUrls[j]);

@@ -10,12 +10,14 @@
 #define confParser_h
 
     ListTask *readConf(char *confFilePath);
-int getOneLine(char* lineToUpdate, FILE *fp, int *charReaden, int sizeOfLine);
+    int getOneLine(char* lineToUpdate, FILE *fp, int *charReaden, int sizeOfLine);
     void cleanOneLine(char *line);
     void cleanLineUntilSpecificChar(char *line, char stop, int hasToStopNext);
     int isCorrectAttributName(char *attributName);
     int getAttributName(char *attributName, char *line);
     void getAttributValueStr(char *actualLine, char *actualAttributValue, int index, int sizeActualAttributValue);
     int getAttributValueTabStr(char *actualLine, char **attributValue, int index);
+    int strIsInt(char *string);
+    void cleanTabOfString(char **tabToClean, int sizeOfTab);
 
 #endif /* confParser_h */
