@@ -8,12 +8,28 @@
 
 #ifndef types_h
 #define types_h
-    
+
     typedef struct ListType ListType;
     struct ListType {
         int capacity;
         int nbOfType;
         char **tabType;
+    };
+
+    typedef struct ArgStruct ArgStruct;
+    struct ArgStruct {
+        char* url;
+        char* actionName;
+        int index;
+        int needVersioning;
+        ListType listType;
+    };
+
+    typedef struct ListArgStruct ListArgStruct;
+    struct ListArgStruct {
+        int capacity;
+        int nbOfArgs;
+        ArgStruct *tabArg;
     };
 
     typedef struct ListLinks ListLinks;
@@ -31,6 +47,7 @@
         int hasVersionning;
         ListType typesToTarget;
         ListLinks allUrlsWithDepth;
+        pthread_mutex_t mutexAction;
     };
 
 

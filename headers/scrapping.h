@@ -11,6 +11,6 @@
 
 void startScrapping(ListTask *tasks);
 void getNameOfFile(char *nameOfFile, char *url);
-int checkContentType(CURL* curl, char* typeAction);
+
 
 #endif /* scrapping_h */

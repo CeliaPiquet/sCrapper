@@ -16,6 +16,7 @@
     #include <errno.h>
     #include <unistd.h>
     #include <sys/stat.h>
+    #include <time.h>
     #include "types.h"
     #include "confParser.h"
     #include "confAction.h"
@@ -23,6 +24,7 @@
     #include "confTask.h"
     #include "curlFunctions.h"
     #include "scrapping.h"
+    #include "confListArgStruc.h"
 
     #define SIZE_MAX_STR_ATTRIBUT   30                  //La taille max d'un name pour une action ou une tâche
     #define SIZE_MAX_URL  2083                          //La taille max d'une url

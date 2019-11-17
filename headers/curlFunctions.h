@@ -10,7 +10,8 @@
 #define curlFunctions_h
 
 void getLinks(FILE *fp, Action *action);
-void getHtmlPage(char* savePath, char* url);
+int getHtmlPage(char* savePath, char* url);
 void getAllLinks(struct ListLinks* ListLinks, int depth);
+int checkContentType(CURL* curl, ListType listType);
 
 #endif /* curlFunctions_h */
