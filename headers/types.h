@@ -49,7 +49,6 @@
         ListType typesToTarget;
         ListLinks allUrlsWithDepth;
         ListArgStruct argsForScrapping;
-        pthread_mutex_t mutexAction;
     };
 
 
