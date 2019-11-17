@@ -43,15 +43,16 @@ void *downloadOneUrl(void *arguments){
     if (arguments){
         struct ArgStruct *args = (struct ArgStruct*) arguments;
         char *pathFile = malloc(sizeof(char)*SIZE_MAX_URL);
-        if(pathFile){
+        char *fileName = malloc(sizeof(char)*SIZE_MAX_STR_ATTRIBUT);
+        if(pathFile && fileName){
             if (args->needVersioning){
                 time_t rawtime;
                 struct tm * timeinfo;
                 time ( &rawtime );
                 timeinfo = localtime ( &rawtime );
-                sprintf(pathFile, "%sdownloads/%s/version_[%d-%d-%d %dh%dmin%ds]/file%d.html", PARENT_PATH, args->actionName,timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, args->index);
+                sprintf(pathFile, "%sdownloads/%s/version_[%d-%d-%d %dh%dmin%ds]/file%d.%s", PARENT_PATH, args->actionName,timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, args->index, args->extension);
             } else {
-                sprintf(pathFile, "%sdownloads/%s/file%d.html", PARENT_PATH, args->actionName, args->index);
+                sprintf(pathFile, "%sdownloads/%s/file%d.%s", PARENT_PATH, args->actionName, args->index, args->extension);
             }
             mkdirRecursive(pathFile);
             CURL* curl = NULL;
@@ -60,6 +61,7 @@ void *downloadOneUrl(void *arguments){
 
             if (fp == NULL){
                 printf("Erreur d'ouverture de fichier\n");
+                remove(pathFile);
             
             } else {
     
@@ -75,19 +77,20 @@ void *downloadOneUrl(void *arguments){
                     result = curl_easy_perform(curl);//Resultat telechargement
 
                     if (result != CURLE_OK){
-                        fprintf(stderr,"    CURL ERROR: %s\n", curl_easy_strerror(result));
+                        //fprintf(stderr,"    CURL ERROR: %s\n", curl_easy_strerror(result));
+                        remove(pathFile);
                     } else {
-//                        if(!checkContentType(curl, args->listType)){
-//                            //remove(pathFile);
-//                        }
+                        if(!checkContentType(curl, args->listType)){
+                            sprintf(fileName, "file%d.%s", args->index, args->extension);
+                            remove(pathFile);
+                        }
+                        curl_easy_cleanup(curl);//Vide les ressources de curl
                     }
-
-                    curl_easy_cleanup(curl);//Vide les ressources de curl
                 }
                 fclose(fp);
             }
-             
             free(pathFile);
+            free(fileName);
         }
     }
     pthread_exit(NULL);
@@ -97,73 +100,43 @@ void *downloadOneUrl(void *arguments){
 
 
 void setArgUrl(ArgStruct *arg, char *url){
-    int lenUrl = (int)strlen(url);
-    strcpy(arg->url, url);
-    if (lenUrl < SIZE_MAX_URL){
-        arg->url[lenUrl] = '\0';
+    if (arg && url){
+        int lenUrl = (int)strlen(url);
+        strcpy(arg->url, url);
+        if (lenUrl < SIZE_MAX_URL){
+            arg->url[lenUrl] = '\0';
+        }
     }
 }
 
 void setArgActionName(ArgStruct *arg, char *name){
-    int lenName = (int)strlen(name);
-    strcpy(arg->actionName, name);
-    if (lenName < SIZE_MAX_URL){
-        arg->actionName[lenName] = '\0';
+    if (arg && name) {
+        int lenName = (int)strlen(name);
+        strcpy(arg->actionName, name);
+        if (lenName < SIZE_MAX_URL){
+            arg->actionName[lenName] = '\0';
+        }
+        
     }
 }
-
-
-//void freeArg(ArgStruct *arg){
-//    if (arg){
-//        if (arg->actionName){
-//            free(arg->actionName);
-//        }
-//        if (arg->url){
-//            free(arg->url);
-//        }
-//        free(arg);
-//    }
-//}
-//
-//void freeListArg(ListArgStruct *args){
-//    if (args){
-//        int i;
-//        for (i = 0; i < args->nbOfArgs; i++){
-//            freeArg(&(args->tabArg[i]));
-//        }
-//        free(args);
-//    }
-//}
-
 
 void scrappOneAction(Action *action){
     if(action){
         
-        int i, nbThreads = action->allUrlsWithDepth.nbOfUrl;
-        ListArgStruct *args = initListArgStruct(nbThreads);
-        
+        ListArgStruct *args = &(action->argsForScrapping);
+        int i, nbThreads;
         
         if (args){
+            nbThreads = args->nbOfArgs;
             pthread_t tid[nbThreads];
             for (i = 0; i < nbThreads; i++){
-                ArgStruct actualArg = *initArg(action->typesToTarget.nbOfType);
-                setArgUrl(&actualArg, action->allUrlsWithDepth.tabUrls[i]);
-                setArgActionName(&actualArg, action->name);
-                actualArg.needVersioning = action->hasVersionning;
-                actualArg.index = i;
-                actualArg.listType = action->typesToTarget;
-                args->tabArg[args->nbOfArgs] = actualArg;
-                args->nbOfArgs ++;
-                
-                if(args->tabArg[i].actionName && args->tabArg[i].url){
+                if(args->tabArg[i].actionName && args->tabArg[i].url && args->tabArg[i].extension){
                     pthread_create(&tid[i], NULL, downloadOneUrl, (void *)&(args->tabArg[i]));
                 }
             }
             for (i = 0; i <nbThreads; i++){
                 pthread_join(tid[i], NULL);
             }
-            //freeListArg(args);
-            free(args);
         }
     }
     

@@ -15,9 +15,8 @@ void getLinks(FILE *fp, Action *action){ // Récupère les liens de type "<a hre
     int sizeOfUrl;
     actualLine[0] = '\0';
 
-    if (fp != NULL && actualLine != NULL && cleanUrl != NULL){
+    if (fp && actualLine && cleanUrl){
         while(getOneLine(actualLine, fp, NULL, SIZE_MAX_OF_LINE_DOWNLOADS)){                    // On récupère chaque ligne du fichier
-            
             positionOfHref = NULL;
             cleanUrl[0] = '\0';
             sizeOfUrl = 0;
@@ -53,7 +52,7 @@ void getLinks(FILE *fp, Action *action){ // Récupère les liens de type "<a hre
 
 int getHtmlPage(char* savePath, char* url){
     if (savePath && url){
-        printf("--> getting %s\n", url);
+        
         CURL* curl = NULL;
 
         FILE* fp = fopen(savePath,"wb+");
@@ -70,15 +69,14 @@ int getHtmlPage(char* savePath, char* url){
             curl_easy_setopt(curl, CURLOPT_URL, url);//Recuperation des informations au niv de l'URL
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);//Ecriture dans le fichier
             curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);//Gestion erreurs
+            curl_easy_setopt(curl, CURLOPT_TIMEOUT, 20L);
             curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-            curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
 
             result = curl_easy_perform(curl);//Resultat telechargement
             
             
-            
             if(result != CURLE_OK){
-                printf("    CURL ERROR: %s\n", curl_easy_strerror(result));
+                //printf("    CURL ERROR: %s\n", curl_easy_strerror(result));
             }
 
             curl_easy_cleanup(curl);//Vide les ressources de curl
@@ -90,8 +88,8 @@ int getHtmlPage(char* savePath, char* url){
 
 void cleanCurlContentType(char *typeContentCurl){
     if (typeContentCurl){
-        int index = 0;
-        while(typeContentCurl[index] != ';'){
+        int index = 0, len = (int)strlen(typeContentCurl);
+        while(index < len && typeContentCurl[index] != ';'){
             index ++;
         }
         typeContentCurl[index] = '\0';
@@ -104,25 +102,21 @@ int checkContentType(CURL* curl, ListType listType){
     char* typeContentCurl;
     
     if (listType.nbOfType == 0){    // Si aucun type n'est précisé on prend tout
-        //curl_easy_cleanup(curl);
         return 1;
     }
     if(curl) {
-        curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &typeContentCurl);
-        
-        cleanCurlContentType(typeContentCurl);
-        
-        for (i = 0; i < listType.nbOfType; i ++){
-            //printf("%s\n", listType.tabType[i]);
-            
-            result = strcmp(typeContentCurl, listType.tabType[i]);
-            
-            if(result == 0) {
-                //curl_easy_cleanup(curl);
-                return 1;
-            }
+        if(curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &typeContentCurl) == 0){
+             cleanCurlContentType(typeContentCurl);
+             
+             for (i = 0; i < listType.nbOfType; i ++){
+                 result = strcmp(typeContentCurl, listType.tabType[i]);
+                 
+                 if(result == 0) {
+                     return 1;
+                 }
+             }
         }
+        
     }
-    //curl_easy_cleanup(curl);
     return 0;
 }

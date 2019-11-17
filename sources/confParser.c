@@ -39,17 +39,20 @@ ListTask *readConf(char *confFilePath){
 
 int getOneLine(char* lineToUpdate, FILE *fp, int *charReaden, int sizeMaxOfLine){
     int sizeOfNewLine;
-    if (fgets(lineToUpdate, sizeMaxOfLine, fp) == NULL){
-        return 0;
+    if (fp && lineToUpdate){
+        if (fgets(lineToUpdate, sizeMaxOfLine, fp) == NULL){
+            return 0;
+        }
+        sizeOfNewLine = (int)strlen(lineToUpdate);
+        if (charReaden){
+            *charReaden = *charReaden + sizeOfNewLine - 1;
+        }
+        if (sizeOfNewLine < sizeMaxOfLine){
+            lineToUpdate[sizeOfNewLine-1] = '\0';
+        }
+        return 1;
     }
-    sizeOfNewLine = (int)strlen(lineToUpdate);
-    if (charReaden){
-        *charReaden = *charReaden + sizeOfNewLine - 1;
-    }
-    if (sizeOfNewLine < sizeMaxOfLine){
-        lineToUpdate[sizeOfNewLine-1] = '\0';
-    }
-    return 1;
+    return 0;
 }
 
 void cleanOneLine(char *line){
@@ -178,4 +181,24 @@ int isCorrectAttributName(char *attributName){
         isCorrect = 1;
     }
     return isCorrect;
+}
+
+int strIsInt(char *string){
+    for (int i=0; i<strlen(string); i++){
+        if(string[i] < 48 || string[i] > 57){
+            return 0;
+        }
+    }
+    return 1;
+}
+
+void cleanTabOfString(char **tabToClean, int sizeOfTab){
+    if (tabToClean != NULL){
+        for (int i = 0; i < sizeOfTab; i++){
+            if (tabToClean[i] != NULL){
+                free(tabToClean[i]);
+            }
+        }
+        free(tabToClean);
+    }
 }

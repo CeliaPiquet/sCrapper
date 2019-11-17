@@ -61,34 +61,6 @@ Task *createOneTaskFromConf(FILE *fp, int  *charReaden, ListAction *allActions){
     return newTask;
 }
 
-int getActionName(char *actualLine, char *actionName){
-    int index = 0, lenActualLine, indexActionName = 0;
-    actionName[0] = '\0';
-    lenActualLine = (int)strlen(actualLine);
-    while (index <  lenActualLine && actualLine[index] != ',' && actualLine[index] != ')' && indexActionName < SIZE_MAX_STR_ATTRIBUT){
-        actionName[indexActionName] = actualLine[index];
-        index ++;
-        indexActionName ++;
-    }
-    if (indexActionName < SIZE_MAX_STR_ATTRIBUT){
-        actionName[indexActionName] = '\0';
-    }
-    if (index == lenActualLine){
-        return 0;
-    }
-    return 1;
-}
-
-Action *getActionFromList(char *actionName, ListAction *allActions){
-    int i;
-    for (i = 0; i < allActions->nbOfAction; i++){
-        if (strcmp(actionName, allActions->tabAction[i].name) == 0){
-            return &allActions->tabAction[i];
-        }
-    }
-    return NULL;
-}
-
 int addActionToTask(Task *task, Action *action){
     if (task == NULL || action == NULL || task->actionsToRun.nbOfAction == task->actionsToRun.capacity){
         return 0;
@@ -122,9 +94,7 @@ int setActionListToTask(Task *task, char *actualLine, ListAction* allActions){
         if (actualAction == NULL || !addActionToTask(task, actualAction)){
             break;
         }
-//        if (!addActionToTask(task, actualAction)){
-//            break;
-//        }
+        
         strcpy(tmpLine, actualLine+charReaden);
         sizeTmp = (int)strlen(actualLine+charReaden);
         if(sizeTmp < sizeActualLine){

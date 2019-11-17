@@ -8,6 +8,57 @@
 
 #include "../headers/main.h"
 
+int completeListLinks(Action *action){
+    fprintf(stderr, "Get all links of action '%s'...\n", action->name);
+    int size, i, j, startList = 0;
+    FILE *fp = NULL;
+    char *filePath = malloc(sizeof(char)*200);
+    if (filePath == NULL){
+        return 0;
+    }
+    filePath[0] = '\0';
+    
+    if (!action){
+        free(filePath);
+        return 0;
+    }
+    
+    if (action->url){
+        int sizeOfUrl = (int)strlen(action->url);
+        strcpy(action->allUrlsWithDepth.tabUrls[0], action->url);
+        if (sizeOfUrl < SIZE_MAX_URL){
+            action->allUrlsWithDepth.tabUrls[0][sizeOfUrl] = '\0';
+        }
+        action->allUrlsWithDepth.nbOfUrl ++;
+    }
+
+    sprintf(filePath, "%sdownloads/tmpFile.html", PARENT_PATH);
+    filePath[strlen(PARENT_PATH)+strlen("downloads/tmpFile.html")] = '\0';
+    
+    for (i = 0; i < action->maxDepth; i++){
+        fprintf(stderr, "   Depth %d running...\n", i+1);
+        size = action->allUrlsWithDepth.nbOfUrl;
+        for (j = startList; j < size; j++){
+            if(action->allUrlsWithDepth.tabUrls[j] && filePath){
+                if(getHtmlPage(filePath, action->allUrlsWithDepth.tabUrls[j])){
+                    fp = fopen(filePath,"r");
+                    if (fp != NULL){
+                        getLinks(fp, action);
+                        fclose(fp);
+                        fp = NULL;
+                    } else {
+                        fprintf(stderr, "Erreur d'ouverture de fichier\n");
+                    }
+                    remove(filePath);
+                }
+            }
+        }
+        startList = size; // On ne regarde plus les url déjà vues
+    }
+    free(filePath);
+    return 1;
+}
+
 int addLinkToList(ListLinks *list, char *url){
     if (list == NULL){
         return 0;

@@ -39,12 +39,22 @@ ArgStruct* initArg(int nbTypes){
         free(arg);
         return NULL;
     }
+    
+    arg->extension = malloc(sizeof(char)*SIZE_MAX_STR_ATTRIBUT);
+    if (!arg->extension){
+        free(arg->url);
+        free(arg->actionName);
+        free(arg);
+        return NULL;
+    }
+    
     arg->index = 0;
     arg->needVersioning = 0;
     ListType *list = initListType(nbTypes);
     if (!list){
         free(arg->url);
         free(arg->actionName);
+        free(arg->extension);
         free(arg);
         return NULL;
     }
@@ -116,7 +126,7 @@ Action* initAction(void){
         return NULL;
     }
     action->allUrlsWithDepth = *listLinks;
-
+    
     ListType *listType = initListType(NB_MAX_OF_TYPES_PER_ACTION);
     if (listType == NULL){
         freeListLinks(&action->allUrlsWithDepth);

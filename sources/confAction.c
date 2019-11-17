@@ -27,9 +27,15 @@ ListAction* getAllActionsFromConf(FILE *fp){
         if(strcmp(actualLine,"=") == 0){
             actionToAdd = createOneActionFromConf(fp, &charReaden);
             if (actionToAdd == NULL){
+                free(actualLine);
+                return NULL;
+            }
+            if(!loadArgsFromAction(actionToAdd)){
+                free(actualLine);
                 return NULL;
             }
             if(!addActionToList(allActions, actionToAdd)){
+                free(actualLine);
                 return NULL;
             }
             fseek(fp, charReaden, SEEK_SET);
@@ -99,58 +105,6 @@ void cleanAction(Action *action){
             free(action->allUrlsWithDepth.tabUrls[i]);
         }
         free(action->allUrlsWithDepth.tabUrls);
-    }
-}
-
-int completeListLinks(Action *action){
-    fprintf(stderr, "Get all links of action '%s'...\n", action->name);
-    int size, i, j, startList = 0;
-    FILE *fp = NULL;
-    char *filePath = malloc(sizeof(char)*200);
-    if (filePath == NULL){
-        return 0;
-    }
-
-    int sizeOfUrl = (int)strlen(action->url);
-    strcpy(action->allUrlsWithDepth.tabUrls[0], action->url);
-    if (sizeOfUrl < SIZE_MAX_URL){
-        action->allUrlsWithDepth.tabUrls[0][sizeOfUrl] = '\0';
-    }
-    action->allUrlsWithDepth.nbOfUrl ++;
-
-    sprintf(filePath, "%sdownloads/tmpFile.html", PARENT_PATH);
-
-    for (i = 0; i < action->maxDepth; i++){
-        fprintf(stderr, "   Depth %d running...\n", i+1);
-        size = action->allUrlsWithDepth.nbOfUrl;
-        for (j = startList; j < size; j++){
-            if(action->allUrlsWithDepth.tabUrls[j]){
-                getHtmlPage(filePath, action->allUrlsWithDepth.tabUrls[j]);
-                fp = fopen(filePath,"r");
-                if (fp != NULL){
-                    getLinks(fp, action);
-                    fclose(fp);
-                    fp = NULL;
-                } else {
-                    fprintf(stderr, "Erreur d'ouverture de fichier\n");
-                }
-                remove(filePath);
-            }
-        }
-        startList = size; // On ne regarde plus les url déjà vues
-    }
-    free(filePath);
-    return 1;
-}
-
-void cleanTabOfString(char **tabToClean, int sizeOfTab){
-    if (tabToClean != NULL){
-        for (int i = 0; i < sizeOfTab; i++){
-            if (tabToClean[i] != NULL){
-                free(tabToClean[i]);
-            }
-        }
-        free(tabToClean);
     }
 }
 
@@ -251,15 +205,6 @@ int completeActionAttribut(Action *action, char *actualLine){
     return 1;
 }
 
-int strIsInt(char *string){
-    for (int i=0; i<strlen(string); i++){
-        if(string[i] < 48 || string[i] > 57){
-            return 0;
-        }
-    }
-    return 1;
-}
-
 int setActionAttributInt(char *attributName, Action *action, char *attributValueInt){
     if (!strIsInt(attributValueInt)){
         fprintf(stderr, "Fichier corrompu : %s doit être un chiffre (vous avez mis '%s...')\n", attributName, attributValueInt);
@@ -270,8 +215,8 @@ int setActionAttributInt(char *attributName, Action *action, char *attributValue
     } else if (strcmp("versioning", attributName) == 0){
         action->hasVersionning = atoi(attributValueInt);
     }
-    if (action->maxDepth > 3 || action->maxDepth < 0){
-        fprintf(stderr, "Fichier corrompu : max-depth doit être compris entre 0 et 3\n");
+    if (action->maxDepth > 2 || action->maxDepth < 0){
+        fprintf(stderr, "Fichier corrompu : max-depth doit être compris entre 0 et 2\n");
         return 0;
     }
     if (action->hasVersionning != 0 && action->hasVersionning != 1){
@@ -329,10 +274,38 @@ void displayAction(Action action){
     fprintf(stderr, "       maxDepth : %d\n", action.maxDepth);
     fprintf(stderr, "       versioning : %d\n", action.hasVersionning);
     fprintf(stderr, "       nbOfUrlsToParse : %d\n", action.allUrlsWithDepth.nbOfUrl);
+    fprintf(stderr, "       args[0].extension : %s\n", action.argsForScrapping.tabArg[0].extension);
     fprintf(stderr, "       type : \n");
     for (i = 0; i < action.typesToTarget.nbOfType; i++){
         fprintf(stderr, "           %s\n", action.typesToTarget.tabType[i]);
     }
     fprintf(stderr, "    }\n");
-   //  displayListLinks(action.allUrlsWithDepth);
+}
+
+int getActionName(char *actualLine, char *actionName){
+    int index = 0, lenActualLine, indexActionName = 0;
+    actionName[0] = '\0';
+    lenActualLine = (int)strlen(actualLine);
+    while (index <  lenActualLine && actualLine[index] != ',' && actualLine[index] != ')' && indexActionName < SIZE_MAX_STR_ATTRIBUT){
+        actionName[indexActionName] = actualLine[index];
+        index ++;
+        indexActionName ++;
+    }
+    if (indexActionName < SIZE_MAX_STR_ATTRIBUT){
+        actionName[indexActionName] = '\0';
+    }
+    if (index == lenActualLine){
+        return 0;
+    }
+    return 1;
+}
+
+Action *getActionFromList(char *actionName, ListAction *allActions){
+    int i;
+    for (i = 0; i < allActions->nbOfAction; i++){
+        if (strcmp(actionName, allActions->tabAction[i].name) == 0){
+            return &allActions->tabAction[i];
+        }
+    }
+    return NULL;
 }
