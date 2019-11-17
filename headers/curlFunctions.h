@@ -13,5 +13,6 @@ void getLinks(FILE *fp, Action *action);
 int getHtmlPage(char* savePath, char* url);
 void getAllLinks(struct ListLinks* ListLinks, int depth);
 int checkContentType(CURL* curl, ListType listType);
+void cleanCurlContentType(char *typeContentCurl);
 
 #endif /* curlFunctions_h */

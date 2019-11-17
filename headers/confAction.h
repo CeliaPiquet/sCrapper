@@ -16,12 +16,14 @@
 
     Action* createOneActionFromConf(FILE *fp, int *charReaden);
     Action* initAction(void);
-    
+Action *getActionFromList(char *actionName, ListAction *allActions);
+
     int completeActionAttribut(Action *action, char *actualLine);
     int addActionToList(ListAction *listAction, Action *actionToAdd);
     int setActionAttributTabStr(char *attributName, Action *action, char **attributValueTabStr, int sizeOfTabStr);
     int setActionAttributInt(char *attributName, Action *action, char *attributValueInt);
-    
+    int getActionName(char *actualLine, char *actionName);
+
     void cleanAction(Action *action);
     void cleanListAction(ListAction *allActions);
     void setActionAttributStr(char *attributName, Action *action, char *attributValue);

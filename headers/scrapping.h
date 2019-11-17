@@ -9,8 +9,13 @@
 #ifndef scrapping_h
 #define scrapping_h
 
+void mkdirRecursive(char *path);
+void *downloadOneUrl(void *arguments);
+void setArgUrl(ArgStruct *arg, char *url);
+void setArgActionName(ArgStruct *arg, char *name);
+void scrappOneAction(Action *action);
+void *scrappOneTask(void* task);
 void startScrapping(ListTask *tasks);
-void getNameOfFile(char *nameOfFile, char *url);
 
 
 #endif /* scrapping_h */

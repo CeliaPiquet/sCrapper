@@ -9,11 +9,12 @@
 #ifndef confListLinks_h
 #define confListLinks_h
 
-    ListLinks* initListLinks(int capacity);
-int addLinkToList(ListLinks *list, char *url);
-    void freeListLinks(ListLinks *list);
-    int completeListLinks(Action *action);
-int isAlreadyInList(ListLinks *list, char *url);
 void displayListLinks(ListLinks list);
+int isAlreadyInList(ListLinks *list, char *url);
+int addLinkToList(ListLinks *list, char *url);
+void freeListLinks(ListLinks *list);
+ListLinks* initListLinks(int capacity);
+int completeListLinks(Action *action);
+
 
 #endif /* confListLinks_h */

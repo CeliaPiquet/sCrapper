@@ -11,5 +11,9 @@
 ListArgStruct* initListArgStruct(int capacity);
 ArgStruct* initArg(int nbTypes);
 
+char *getExtensionFromUrl(char *url);
+void cleanExtension(char *extension);
+int loadArgsFromAction(Action *action);
+
 
 #endif /* confListArgStruc_h */

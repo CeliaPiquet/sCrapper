@@ -22,6 +22,7 @@
         char* actionName;
         int index;
         int needVersioning;
+        char* extension;
         ListType listType;
     };
 
@@ -47,6 +48,7 @@
         int hasVersionning;
         ListType typesToTarget;
         ListLinks allUrlsWithDepth;
+        ListArgStruct argsForScrapping;
         pthread_mutex_t mutexAction;
     };
 
