@@ -2,7 +2,7 @@
 {name -> National Geographic}                                                                  # Nom de notre action
 {url -> https://www.nationalgeographic.fr/}   # URL du site à récupérer
 +
-{max-depth -> 2}
+{max-depth -> 1}
 {versioning -> 1}                                                                       # 1 ou 0 = on ou off
 {type -> (text/html,image/jpeg,application/xml)}
 
@@ -11,14 +11,14 @@
 {url -> https://www.geo.fr/}                                                       # URL du site à récupérer
 +
 {max-depth -> 1}
-{versioning -> 0}                                                                       # 1 ou 0 = on ou off
-{type -> (text/html)}
+{versioning -> 1}                                                                       # 1 ou 0 = on ou off
+{type -> (image/png)}
 
 =
-{name -> Neon Mag}
-{url -> https://www.neonmag.fr/}
+{name -> Google}
+{url -> https://www.google.fr/}
 +
-{max-depth -> 1}
+{max-depth -> 2}
 {versioning -> 0}
 {type -> ()}
 
@@ -26,12 +26,12 @@
 {name -> ALL}
 {minute -> 0}
 {second -> 5}
-(National Geographic,Geo,Neon Mag)
+(National Geographic,Geo,Google)
 
 ==
-{name -> Tache Neon}
-{hour -> 1}
-{second -> 5}
-(Neon Mag)
+{name -> Tache Unique}
+{second -> 15}
+(Geo)
+
 
 
