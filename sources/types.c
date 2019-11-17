@@ -8,6 +8,50 @@
 
 #include "../headers/main.h"
 
+ListArgStruct* initListArgStruct(int capacity){
+    ListArgStruct *list = malloc(sizeof(ListArgStruct));
+    if (list == NULL){
+        return NULL;
+    }
+    list->capacity = capacity;
+    list->nbOfArgs = 0;
+    list->tabArg = malloc(sizeof(ArgStruct)*list->capacity);
+    if (list->tabArg == NULL){
+        free(list);
+        return NULL;
+    }
+    return list;
+}
+
+ArgStruct* initArg(int nbTypes){
+    ArgStruct *arg = malloc(sizeof(ArgStruct));
+    if(!arg){
+        return NULL;
+    }
+    arg->actionName = malloc(sizeof(char)*SIZE_MAX_STR_ATTRIBUT);
+    if (!arg->actionName){
+        free(arg);
+        return NULL;
+    }
+    arg->url = malloc(sizeof(char)*SIZE_MAX_URL);
+    if (!arg->url){
+        free(arg->actionName);
+        free(arg);
+        return NULL;
+    }
+    arg->index = 0;
+    arg->needVersioning = 0;
+    ListType *list = initListType(nbTypes);
+    if (!list){
+        free(arg->url);
+        free(arg->actionName);
+        free(arg);
+        return NULL;
+    }
+    arg->listType = *list;
+    return arg;
+}
+
 Task* initTask(void){
     Task *task = malloc(sizeof(Task));
     if (task == NULL){
@@ -82,6 +126,9 @@ Action* initAction(void){
         return NULL;
     }
     action->typesToTarget = *listType;
+    
+    pthread_mutex_init(&action->mutexAction, NULL);
+    
     return action;
 }
 

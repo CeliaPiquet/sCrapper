@@ -118,12 +118,12 @@ int completeListLinks(Action *action){
     }
     action->allUrlsWithDepth.nbOfUrl ++;
 
+    sprintf(filePath, "%sdownloads/tmpFile.html", PARENT_PATH);
 
     for (i = 0; i < action->maxDepth; i++){
         fprintf(stderr, "   Depth %d running...\n", i+1);
         size = action->allUrlsWithDepth.nbOfUrl;
         for (j = startList; j < size; j++){
-            sprintf(filePath, "%sdownloads/tmpFile%d.html", PARENT_PATH, j);
             if(action->allUrlsWithDepth.tabUrls[j]){
                 getHtmlPage(filePath, action->allUrlsWithDepth.tabUrls[j]);
                 fp = fopen(filePath,"r");

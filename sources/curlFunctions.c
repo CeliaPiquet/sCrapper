@@ -8,7 +8,7 @@
 
 #include "../headers/main.h"
 
-void getLinks(FILE *fp, Action *action){
+void getLinks(FILE *fp, Action *action){ // Récupère les liens de type "<a href:"http...">"
     char *cleanUrl = malloc(sizeof(char) * 1000);
     char *actualLine = malloc(sizeof(char) * SIZE_MAX_OF_LINE_DOWNLOADS);
     char *positionOfHref = NULL;
@@ -17,6 +17,7 @@ void getLinks(FILE *fp, Action *action){
 
     if (fp != NULL && actualLine != NULL && cleanUrl != NULL){
         while(getOneLine(actualLine, fp, NULL, SIZE_MAX_OF_LINE_DOWNLOADS)){                    // On récupère chaque ligne du fichier
+            
             positionOfHref = NULL;
             cleanUrl[0] = '\0';
             sizeOfUrl = 0;
@@ -25,6 +26,7 @@ void getLinks(FILE *fp, Action *action){
                 positionOfHref = strstr(actualLine,"href=\"http");  // ... ou un http
             }
             if (positionOfHref != NULL){                            // Si la ligne possède un lien qui commence bien par http ou https alors on le prend
+                
                 positionOfHref = positionOfHref + 6;                //Début du lien en "http..."
 
                 while (*positionOfHref != 34 && *positionOfHref != 39){
@@ -33,7 +35,6 @@ void getLinks(FILE *fp, Action *action){
                 }
                 strncpy(cleanUrl, positionOfHref-sizeOfUrl, sizeOfUrl);
                 cleanUrl[sizeOfUrl] = '\0';
-
                 if(!addLinkToList(&action->allUrlsWithDepth, cleanUrl)){
                     return;
                 }
@@ -50,8 +51,9 @@ void getLinks(FILE *fp, Action *action){
 
 }
 
-void getHtmlPage(char* savePath, char* url){
+int getHtmlPage(char* savePath, char* url){
     if (savePath && url){
+        printf("--> getting %s\n", url);
         CURL* curl = NULL;
 
         FILE* fp = fopen(savePath,"wb+");
@@ -60,6 +62,7 @@ void getHtmlPage(char* savePath, char* url){
 
         if (fp == NULL){
             printf("Erreur d'ouverture de fichier\n");
+            return 0;
         }
         
         curl = curl_easy_init();//Initialisation
@@ -71,7 +74,9 @@ void getHtmlPage(char* savePath, char* url){
             curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
 
             result = curl_easy_perform(curl);//Resultat telechargement
-
+            
+            
+            
             if(result != CURLE_OK){
                 printf("    CURL ERROR: %s\n", curl_easy_strerror(result));
             }
@@ -80,6 +85,44 @@ void getHtmlPage(char* savePath, char* url){
         }
         fclose(fp);
     }
+    return 1;
+}
+
+void cleanCurlContentType(char *typeContentCurl){
+    if (typeContentCurl){
+        int index = 0;
+        while(typeContentCurl[index] != ';'){
+            index ++;
+        }
+        typeContentCurl[index] = '\0';
+    }
 }
 
 
+int checkContentType(CURL* curl, ListType listType){
+    int result, i;
+    char* typeContentCurl;
+    
+    if (listType.nbOfType == 0){    // Si aucun type n'est précisé on prend tout
+        //curl_easy_cleanup(curl);
+        return 1;
+    }
+    if(curl) {
+        curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &typeContentCurl);
+        
+        cleanCurlContentType(typeContentCurl);
+        
+        for (i = 0; i < listType.nbOfType; i ++){
+            //printf("%s\n", listType.tabType[i]);
+            
+            result = strcmp(typeContentCurl, listType.tabType[i]);
+            
+            if(result == 0) {
+                //curl_easy_cleanup(curl);
+                return 1;
+            }
+        }
+    }
+    //curl_easy_cleanup(curl);
+    return 0;
+}

@@ -9,6 +9,7 @@
 #include "../headers/main.h"
 
 int main(int argc, const char * argv[]) {
+    fprintf(stderr,"Chargement de la conf...\n\n");
     ListTask *tasksToRun = NULL;
 
     curl_global_init(CURL_GLOBAL_ALL);
@@ -16,11 +17,12 @@ int main(int argc, const char * argv[]) {
 
 
     if (tasksToRun != NULL){
-        // Scrapping
+        fprintf(stderr,"\nConfiguration ok\n\nLancement des tâches :\n");
         for (int i = 0; i < tasksToRun->nbOfTask; i++){
             displayTask(tasksToRun->tabTask[i]);
         }
-       // startScrapping(tasksToRun);
+        
+        startScrapping(tasksToRun);
         return 1;
     }
     curl_global_cleanup();

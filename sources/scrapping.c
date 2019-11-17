@@ -8,222 +8,189 @@
 
 #include "../headers/main.h"
 
-void getNameOfFile(char *nameOfFile, char *url){
-    int sizeOfUrl = (int)strlen(url);
-    int posStartName = 0, sizeToCopy, posEndName = sizeOfUrl;
-    for (int i = 0; i < sizeOfUrl; i++){
-        if (url[i] == '/'){
-            posStartName = i + 1;
-            continue;
-        }
-        if(url[i] == '?' || (url[i] == '#' && url[i-1] != '/')){
-            posEndName = i;
-            break;
-        }
-    }
-    sizeToCopy = posEndName - posStartName;
-    strncpy(nameOfFile, url+posStartName, sizeToCopy);
-    if (sizeToCopy < 200){
-        nameOfFile[sizeToCopy] = '\0';
-    }
-}
 
-static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream)
-{
-  size_t written = fwrite(ptr, size, nmemb, (FILE *)stream);
-    return written;
-}
 
-static void* run_one_thread(void *url){
-    CURL *curl_handle = NULL;
-    char *pagefilename = malloc(sizeof(char)*200);
-    char *nameOfFile = malloc(sizeof(char)*20);
-    if (pagefilename == NULL || nameOfFile == NULL){
-        return NULL;
-    }
-    pagefilename[0]= '\0';
-    getNameOfFile(nameOfFile, url);
-    sprintf(pagefilename, "%sdownloads/1%s.html", PARENT_PATH, nameOfFile);
-    FILE *pagefile;
-    
-    
-    // init the CURL session
-    curl_handle = curl_easy_init();
-    
-    if (curl_handle){
-         curl_easy_setopt(curl_handle, CURLOPT_URL, url); // Set URL
-         //curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, 20L); // timeout de 20 secondes
-         curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L); // Switch on full protocol/debug output while testing
-         
-         /* disable progress meter, set to 0L to enable and disable debug output */
-         curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1L);
-         
-         /* send all data to this function  */
-         curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
-
-         /* open the file */
-         pagefile = fopen(pagefilename, "w+");
-        
-         if(pagefile) {
-             
-             /* write the page body to this file handle */
-             curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, pagefile);
-
-            /* get it! */
-            curl_easy_perform(curl_handle);
-
-            /* close the header file */
-            fclose(pagefile);
-         } else {
-             printf("page file NOT ok\n");
-         }
-         /* cleanup curl stuff */
-          curl_easy_cleanup(curl_handle);
-    }
-    
-    
-     return NULL;
-}
-
-void* startUrlThreads(void *url){
-    if (url){
-        char *nameOfFile = malloc(sizeof(char)*20);
-        char *pagefilename = malloc(sizeof(char)*SIZE_MAX_URL);
-        if (nameOfFile){
-            if (pagefilename){
-                getNameOfFile(nameOfFile, url);
-                sprintf(pagefilename, "%sdownloads/%s.html", PARENT_PATH, nameOfFile);
-                if(strlen(pagefilename)<SIZE_MAX_URL){
-                    pagefilename[strlen(pagefilename)] = '\0';
+void mkdirRecursive(char *path){
+    int sizeToCopy = 0, isDirectory = 0, sizePath, i;
+    char *pathCopy = malloc(sizeof(char)*strlen(path));
+    if(pathCopy){
+        sizePath = (int)strlen(path);
+        while (sizeToCopy < sizePath-1){
+            isDirectory = 0;
+            for (i = sizeToCopy+1; i <= sizePath; i++){
+                if (path[i] == '/'){
+                    sizeToCopy = i;
+                    isDirectory = 1;
+                    break;
                 }
-                fprintf(stderr, "-> %s\n", pagefilename);
-                
-                CURL *curl_handle = curl_easy_init();
-    
-                if (curl_handle){
-                     curl_easy_setopt(curl_handle, CURLOPT_URL, url); // Set URL
-                     //curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, 20L); // timeout de 20 secondes
-                     curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L); // Switch on full protocol/debug output while testing
-    
-                     /* disable progress meter, set to 0L to enable and disable debug output */
-                     curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1L);
-    
-                     /* send all data to this function  */
-                     curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
-    
-                     /* open the file */
-                     FILE *pagefile = fopen(pagefilename, "w+");
-    
-                     if(pagefile) {
-    
-                         /* write the page body to this file handle */
-                         curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, pagefile);
-                        
-                        /* get it! */
-                        curl_easy_perform(curl_handle);
-    
-                        /* close the header file */
-                        fclose(pagefile);
-                     } else {
-                         printf("page file NOT ok\n");
-                     }
-                     /* cleanup curl stuff */
-                      curl_easy_cleanup(curl_handle);
-                }
-                free(pagefilename);
             }
-            free(nameOfFile);
+            if (!isDirectory){ // il nous reste alors que le nom du fichier
+                return;
+            }
+            strncpy(pathCopy, path, sizeToCopy);
+            pathCopy[sizeToCopy] = '\0';
+            if(mkdir(pathCopy,0777)==0){
+                fprintf(stderr, "%s was created\n", pathCopy);
+            }
+           
+        }
+        free(pathCopy);
+    }
+    
+}
+
+void *downloadOneUrl(void *arguments){
+    if (arguments){
+        struct ArgStruct *args = (struct ArgStruct*) arguments;
+        char *pathFile = malloc(sizeof(char)*SIZE_MAX_URL);
+        if(pathFile){
+            if (args->needVersioning){
+                time_t rawtime;
+                struct tm * timeinfo;
+                time ( &rawtime );
+                timeinfo = localtime ( &rawtime );
+                sprintf(pathFile, "%sdownloads/%s/version_[%d-%d-%d %dh%dmin%ds]/file%d.html", PARENT_PATH, args->actionName,timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, args->index);
+            } else {
+                sprintf(pathFile, "%sdownloads/%s/file%d.html", PARENT_PATH, args->actionName, args->index);
+            }
+            mkdirRecursive(pathFile);
+            CURL* curl = NULL;
+            FILE* fp = fopen(pathFile,"wb+");
+            int result;
+
+            if (fp == NULL){
+                printf("Erreur d'ouverture de fichier\n");
+            
+            } else {
+    
+                curl = curl_easy_init();//Initialisation
+                 
+                if (curl){
+                    curl_easy_setopt(curl, CURLOPT_URL, args->url);//Recuperation des informations au niv de l'URL
+                    curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);//Ecriture dans le fichier
+                    curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);//Gestion erreurs
+                    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+                    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
+
+                    result = curl_easy_perform(curl);//Resultat telechargement
+
+                    if (result != CURLE_OK){
+                        fprintf(stderr,"    CURL ERROR: %s\n", curl_easy_strerror(result));
+                    } else {
+//                        if(!checkContentType(curl, args->listType)){
+//                            //remove(pathFile);
+//                        }
+                    }
+
+                    curl_easy_cleanup(curl);//Vide les ressources de curl
+                }
+                fclose(fp);
+            }
+             
+            free(pathFile);
         }
     }
+    pthread_exit(NULL);
     return NULL;
 }
 
-static void* startActionThreads(void *action){
-    Action *newAction = (Action *) action;
-    if (!newAction){
-        return NULL;
+
+
+void setArgUrl(ArgStruct *arg, char *url){
+    int lenUrl = (int)strlen(url);
+    strcpy(arg->url, url);
+    if (lenUrl < SIZE_MAX_URL){
+        arg->url[lenUrl] = '\0';
     }
-    int i, error;
-    pthread_t threads[newAction->allUrlsWithDepth.nbOfUrl];
-    for (i = 0; i < newAction->allUrlsWithDepth.nbOfUrl; i++){
-        error = pthread_create(&threads[i], NULL, startUrlThreads, newAction->allUrlsWithDepth.tabUrls[i]);
-        if (error != 0){
-            fprintf(stderr, "Couldn't run task thread number 2-%d, errno %d\n", i, error);
-        } else {
-            fprintf(stderr, "Thread %d, gets %s\n", i, newAction->allUrlsWithDepth.tabUrls[i]);
-        }
-    }
-    for(i = 0; i <  newAction->allUrlsWithDepth.nbOfUrl; i++) {
-      pthread_join(threads[i], NULL);
-      fprintf(stderr, "Thread 2-%d terminated\n", i);
-    }
-    return NULL;
 }
 
-static void* startTaskTimer(void *task){
-    Task *newTask = (Task*) task;
-    if (!newTask){
-        return NULL;
+void setArgActionName(ArgStruct *arg, char *name){
+    int lenName = (int)strlen(name);
+    strcpy(arg->actionName, name);
+    if (lenName < SIZE_MAX_URL){
+        arg->actionName[lenName] = '\0';
     }
-    // Lancer les threads par action et en fonction du timing
-    int i, error;
-    pthread_t threads[newTask->actionsToRun.nbOfAction];
-    for (i = 0; i < newTask->actionsToRun.nbOfAction; i++){
-        error = pthread_create(&threads[i], NULL, startActionThreads, &(newTask->actionsToRun.tabAction[i]));
-        if (error != 0){
-            fprintf(stderr, "Couldn't run task thread number 1-%d, errno %d\n", i, error);
-        } else {
-            fprintf(stderr, "Thread %d, gets %s\n", i, newTask->actionsToRun.tabAction[i].name);
+}
+
+
+//void freeArg(ArgStruct *arg){
+//    if (arg){
+//        if (arg->actionName){
+//            free(arg->actionName);
+//        }
+//        if (arg->url){
+//            free(arg->url);
+//        }
+//        free(arg);
+//    }
+//}
+//
+//void freeListArg(ListArgStruct *args){
+//    if (args){
+//        int i;
+//        for (i = 0; i < args->nbOfArgs; i++){
+//            freeArg(&(args->tabArg[i]));
+//        }
+//        free(args);
+//    }
+//}
+
+
+void scrappOneAction(Action *action){
+    if(action){
+        
+        int i, nbThreads = action->allUrlsWithDepth.nbOfUrl;
+        ListArgStruct *args = initListArgStruct(nbThreads);
+        
+        
+        if (args){
+            pthread_t tid[nbThreads];
+            for (i = 0; i < nbThreads; i++){
+                ArgStruct actualArg = *initArg(action->typesToTarget.nbOfType);
+                setArgUrl(&actualArg, action->allUrlsWithDepth.tabUrls[i]);
+                setArgActionName(&actualArg, action->name);
+                actualArg.needVersioning = action->hasVersionning;
+                actualArg.index = i;
+                actualArg.listType = action->typesToTarget;
+                args->tabArg[args->nbOfArgs] = actualArg;
+                args->nbOfArgs ++;
+                
+                if(args->tabArg[i].actionName && args->tabArg[i].url){
+                    pthread_create(&tid[i], NULL, downloadOneUrl, (void *)&(args->tabArg[i]));
+                }
+            }
+            for (i = 0; i <nbThreads; i++){
+                pthread_join(tid[i], NULL);
+            }
+            //freeListArg(args);
+            free(args);
         }
     }
-    for(i = 0; i <  newTask->actionsToRun.nbOfAction; i++) {
-      pthread_join(threads[i], NULL);
-      fprintf(stderr, "Thread 1-%d terminated\n", i);
+    
+}
+
+void *scrappOneTask(void* task){
+    Task *actualTask = (Task *)task;
+    while (1){
+        fprintf(stderr,"-> Task %s running ..\n", actualTask->name);
+        for (int j = 0; j < actualTask->actionsToRun.nbOfAction; j++){
+            scrappOneAction(&(actualTask->actionsToRun.tabAction[j]));
+        }
+        fprintf(stderr,"--> Task %s completed !\n", actualTask->name);
+        fprintf(stderr,"---> Time before next running : %d h %d min %d s\n", actualTask->hour, actualTask->minute, actualTask->second);
+        sleep(actualTask->second + (actualTask->minute)*60 + (actualTask->hour)*3600);
     }
     return NULL;
 }
 
 void startScrapping(ListTask *tasks){
-    int i, error;
-    pthread_t threads[tasks->nbOfTask];
-    for (i = 0; i < tasks->nbOfTask; i++){
-        error = pthread_create(&threads[i], NULL, startTaskTimer, (void *)&(tasks->tabTask[i]));
-        if (error != 0){
-            fprintf(stderr, "Couldn't run thread number %d, errno %d\n", i, error);
-        } else {
-            fprintf(stderr, "Thread %d, gets %s\n", i, tasks->tabTask[i].name);
-        }
+    int i, nbTasks = tasks->nbOfTask;
+    pthread_t threads[nbTasks];
+    for(i = 0; i < nbTasks; i++){
+        pthread_create(&threads[i], NULL, scrappOneTask, &(tasks->tabTask[i]));
+    }
+    for (i = 0; i < nbTasks; i++){
+        pthread_join(threads[i], NULL);
     }
     
-    for(i = 0; i < tasks->nbOfTask; i++) {
-      pthread_join(threads[i], NULL);
-      fprintf(stderr, "Thread 0-%d terminated\n", i);
-    }
-
-}
-
-int checkContentType(CURL* curl, char* typeAction){
-    int result;
-    char* typeContentCurl;
-
-    if(curl)
-    {
-        curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &typeContentCurl);
-
-        result = strcmp(typeContentCurl, typeAction);
-
-        if(result == 0){
-            printf("Content type authorized");
-            return 1;
-        }
-        else{
-            printf("The content type doesn't match.");
-            return 0;
-        }
-    }
-    else
-    {
-        printf("Curl object null");
-        return 0;
-    }
 }
