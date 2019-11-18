@@ -60,7 +60,7 @@ int getHtmlPage(char* savePath, char* url){
         int result;
 
         if (fp == NULL){
-            printf("Erreur d'ouverture de fichier\n");
+            printf("Error while opening the file\n");
             return 0;
         }
         
@@ -76,7 +76,7 @@ int getHtmlPage(char* savePath, char* url){
             
             
             if(result != CURLE_OK){
-                //printf("    CURL ERROR: %s\n", curl_easy_strerror(result));
+                fprintf(stderr, "    CURL ERROR: %s\n", curl_easy_strerror(result));
             }
 
             curl_easy_cleanup(curl);//Vide les ressources de curl

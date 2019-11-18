@@ -67,7 +67,6 @@ int loadArgsFromAction(Action *action){
                 ArgStruct *actualArgStruct = initArg(action->typesToTarget.nbOfType);
                 if (actualArgStruct){
                     sprintf(actualArgStruct->actionName, "%s", action->name);
-                    
                     sprintf(actualArgStruct->url, "%s", action->allUrlsWithDepth.tabUrls[i]);
                     
                     actualArgStruct->index = i;

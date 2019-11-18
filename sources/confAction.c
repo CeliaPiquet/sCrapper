@@ -207,7 +207,7 @@ int completeActionAttribut(Action *action, char *actualLine){
 
 int setActionAttributInt(char *attributName, Action *action, char *attributValueInt){
     if (!strIsInt(attributValueInt)){
-        fprintf(stderr, "Fichier corrompu : %s doit être un chiffre (vous avez mis '%s...')\n", attributName, attributValueInt);
+        fprintf(stderr, "Corrupted file: %s must be an integer value (you put '%s...')\n", attributName, attributValueInt);
         return 0;
     }
     if (strcmp("max-depth", attributName) == 0){
@@ -216,11 +216,11 @@ int setActionAttributInt(char *attributName, Action *action, char *attributValue
         action->hasVersionning = atoi(attributValueInt);
     }
     if (action->maxDepth > 2 || action->maxDepth < 0){
-        fprintf(stderr, "Fichier corrompu : max-depth doit être compris entre 0 et 2\n");
+        fprintf(stderr, "Corrupted file : max-depth must be an integer between 0 and 2\n");
         return 0;
     }
     if (action->hasVersionning != 0 && action->hasVersionning != 1){
-        fprintf(stderr, "Fichier corrompu : versioning doit être à 1 ou à 0\n");
+        fprintf(stderr, "Corrupted file : versioning must be 1 or 0\n");
         return 0;
     }
     return 1;
@@ -274,7 +274,6 @@ void displayAction(Action action){
     fprintf(stderr, "       maxDepth : %d\n", action.maxDepth);
     fprintf(stderr, "       versioning : %d\n", action.hasVersionning);
     fprintf(stderr, "       nbOfUrlsToParse : %d\n", action.allUrlsWithDepth.nbOfUrl);
-    fprintf(stderr, "       args[0].extension : %s\n", action.argsForScrapping.tabArg[0].extension);
     fprintf(stderr, "       type : \n");
     for (i = 0; i < action.typesToTarget.nbOfType; i++){
         fprintf(stderr, "           %s\n", action.typesToTarget.tabType[i]);

@@ -11,14 +11,14 @@
 ListTask *readConf(char *confFilePath){
     FILE *fp = fopen(confFilePath, "r");
     if (fp == NULL){
-        fprintf(stderr, "Erreur d'ouverture du fichier\n");
+        fprintf(stderr, "Error while opening the configuration file\n");
         return NULL;
     }
     
     // On récupère toutes les actions définies dans le fichier
     ListAction *allActions = getAllActionsFromConf(fp);
     if (allActions == NULL){
-        fprintf(stderr, "Fichier de configuration corrompu (actions)\n");
+        fprintf(stderr, "Configuration file is corrupt (wrong values for one or several actions)\n");
         fclose(fp);
         return NULL;
     }
@@ -27,7 +27,7 @@ ListTask *readConf(char *confFilePath){
     // On récupère toutes les tâches définies dans le fichier
     ListTask *allTasks = getAllTasksFromConnf(fp, allActions);
     if (allTasks == NULL){
-        fprintf(stderr,"Fichier de configuration corrompu (tasks)\n");
+        fprintf(stderr,"Configuration file is corrupt (wrong values for one or several tasks)\n");
         cleanListAction(allActions);
         fclose(fp);
         return NULL;

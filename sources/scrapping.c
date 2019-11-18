@@ -60,7 +60,7 @@ void *downloadOneUrl(void *arguments){
             int result;
 
             if (fp == NULL){
-                printf("Erreur d'ouverture de fichier\n");
+                printf("Error while opening the file\n");
                 remove(pathFile);
             
             } else {
@@ -77,7 +77,6 @@ void *downloadOneUrl(void *arguments){
                     result = curl_easy_perform(curl);//Resultat telechargement
 
                     if (result != CURLE_OK){
-                        //fprintf(stderr,"    CURL ERROR: %s\n", curl_easy_strerror(result));
                         remove(pathFile);
                     } else {
                         if(!checkContentType(curl, args->listType)){
@@ -122,7 +121,6 @@ void setArgActionName(ArgStruct *arg, char *name){
 
 void scrappOneAction(Action *action){
     if(action){
-        
         ListArgStruct *args = &(action->argsForScrapping);
         int i, nbThreads;
         
@@ -150,6 +148,9 @@ void *scrappOneTask(void* task){
             scrappOneAction(&(actualTask->actionsToRun.tabAction[j]));
         }
         fprintf(stderr,"--> Task %s completed !\n", actualTask->name);
+        if (!actualTask->second && !actualTask->minute && !actualTask->hour){
+            return NULL;
+        }
         fprintf(stderr,"---> Time before next running : %d h %d min %d s\n", actualTask->hour, actualTask->minute, actualTask->second);
         sleep(actualTask->second + (actualTask->minute)*60 + (actualTask->hour)*3600);
     }

@@ -47,7 +47,7 @@ int completeListLinks(Action *action){
                         fclose(fp);
                         fp = NULL;
                     } else {
-                        fprintf(stderr, "Erreur d'ouverture de fichier\n");
+                        fprintf(stderr, "Error while opening the file\n");
                     }
                     remove(filePath);
                 }
