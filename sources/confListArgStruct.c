@@ -19,7 +19,6 @@ char *getExtensionFromUrl(char *url){
             curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);//Gestion erreurs
             curl_easy_setopt(curl, CURLOPT_TIMEOUT, 20L);
             curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
-            curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 
             result = curl_easy_perform(curl);//Resultat telechargement
             
