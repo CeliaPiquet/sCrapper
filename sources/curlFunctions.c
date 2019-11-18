@@ -106,15 +106,18 @@ int checkContentType(CURL* curl, ListType listType){
     }
     if(curl) {
         if(curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &typeContentCurl) == 0){
-             cleanCurlContentType(typeContentCurl);
-             
-             for (i = 0; i < listType.nbOfType; i ++){
-                 result = strcmp(typeContentCurl, listType.tabType[i]);
-                 
-                 if(result == 0) {
-                     return 1;
-                 }
-             }
+            if (typeContentCurl){
+                cleanCurlContentType(typeContentCurl);
+                
+                for (i = 0; i < listType.nbOfType; i ++){
+                    result = strcmp(typeContentCurl, listType.tabType[i]);
+                    
+                    if(result == 0) {
+                        return 1;
+                    }
+                }
+            }
+            
         }
         
     }

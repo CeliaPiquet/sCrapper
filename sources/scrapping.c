@@ -84,8 +84,8 @@ void *downloadOneUrl(void *arguments){
                             sprintf(fileName, "file%d.%s", args->index, args->extension);
                             remove(pathFile);
                         }
-                        curl_easy_cleanup(curl);//Vide les ressources de curl
                     }
+                    curl_easy_cleanup(curl);//Vide les ressources de curl
                 }
                 fclose(fp);
             }
