@@ -1,8 +1,8 @@
 =
-{name -> National Geographic}                                                                  # Nom de notre action
-{url -> https://www.nationalgeographic.fr/}   # URL du site à récupérer
+{name -> Bootsrap}                                                                  # Nom de notre action
+{url -> https://getbootstrap.com/}      # URL du site à récupérer
 +
-{max-depth -> 1}
+{max-depth -> 2}
 {versioning -> 1}                                                                       # 1 ou 0 = on ou off
 {type -> (text/html,image/jpeg,application/xml)}
 
@@ -26,11 +26,10 @@
 {name -> ALL}
 {minute -> 0}
 {second -> 5}
-(National Geographic,Geo,Google)
+(Bootsrap,Geo,Google)
 
 ==
 {name -> Tache Unique}
-{second -> 15}
 (Geo)
 
 
