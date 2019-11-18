@@ -136,9 +136,7 @@ Action* initAction(void){
         return NULL;
     }
     action->typesToTarget = *listType;
-    
-    pthread_mutex_init(&action->mutexAction, NULL);
-    
+        
     return action;
 }
 
