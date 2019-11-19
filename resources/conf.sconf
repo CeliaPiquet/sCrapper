@@ -2,7 +2,7 @@
 {name -> Bootsrap}                                                                  # Nom de notre action
 {url -> https://getbootstrap.com/}      # URL du site à récupérer
 +
-{max-depth -> 2}
+{max-depth -> 1}
 {versioning -> 1}                                                                       # 1 ou 0 = on ou off
 {type -> (text/html,image/jpeg,application/xml)}
 
